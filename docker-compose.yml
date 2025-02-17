@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: the-wedding-game-api
+      POSTGRES_PASSWORD: abcd@123
+      POSTGRES_DB: the-wedding-game
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
