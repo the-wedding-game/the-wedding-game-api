@@ -7,9 +7,15 @@ import (
 	"the-wedding-game-api/middleware/validators"
 	"the-wedding-game-api/models"
 	"the-wedding-game-api/types"
+	"the-wedding-game-api/utils"
 )
 
 func GetChallengeById(c *gin.Context) {
+	if err := middleware.CheckIsLoggedIn(c); err != nil {
+		_ = c.Error(err)
+		return
+	}
+
 	id, err := validators.ValidateGetChallengeByIdRequest(c)
 	if err != nil {
 		_ = c.Error(err)
@@ -22,7 +28,19 @@ func GetChallengeById(c *gin.Context) {
 		return
 	}
 
-	response := types.ChallengeCreatedResponse{
+	user, err := middleware.GetCurrentUser(c)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	completed, err := models.IsChallengeCompleted(user.ID, challenge.ID)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	response := types.GetChallengeResponse{
 		Id:          challenge.ID,
 		Name:        challenge.Name,
 		Description: challenge.Description,
@@ -30,7 +48,9 @@ func GetChallengeById(c *gin.Context) {
 		Image:       challenge.Image,
 		Status:      challenge.Status,
 		Type:        challenge.Type,
+		Completed:   completed,
 	}
+
 	c.IndentedJSON(http.StatusOK, response)
 	return
 }
@@ -67,7 +87,24 @@ func CreateChallenge(c *gin.Context) {
 }
 
 func GetAllChallenges(c *gin.Context) {
+	if err := middleware.CheckIsLoggedIn(c); err != nil {
+		_ = c.Error(err)
+		return
+	}
+
 	challengesArr, err := models.GetAllChallenges()
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	user, err := middleware.GetCurrentUser(c)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	submissions, err := models.GetCompletedChallenges(user.ID)
 	if err != nil {
 		_ = c.Error(err)
 		return
@@ -75,7 +112,9 @@ func GetAllChallenges(c *gin.Context) {
 
 	var response types.GetChallengesResponse
 	for _, challenge := range challengesArr {
-		response.Challenges = append(response.Challenges, types.ChallengeCreatedResponse{
+		isCompleted := utils.IsChallengeInSubmissions(challenge.ID, submissions)
+
+		response.Challenges = append(response.Challenges, types.GetChallengeResponse{
 			Id:          challenge.ID,
 			Name:        challenge.Name,
 			Description: challenge.Description,
@@ -83,6 +122,7 @@ func GetAllChallenges(c *gin.Context) {
 			Image:       challenge.Image,
 			Status:      challenge.Status,
 			Type:        challenge.Type,
+			Completed:   isCompleted,
 		})
 	}
 

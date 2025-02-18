@@ -33,8 +33,19 @@ type ChallengeCreatedResponse struct {
 	Type        ChallengeType   `json:"type"`
 }
 
+type GetChallengeResponse struct {
+	Id          uint            `json:"id"`
+	Name        string          `json:"name"`
+	Description string          `json:"description"`
+	Points      uint            `json:"points"`
+	Image       string          `json:"image"`
+	Status      ChallengeStatus `json:"status"`
+	Type        ChallengeType   `json:"type"`
+	Completed   bool            `json:"completed"`
+}
+
 type GetChallengesResponse struct {
-	Challenges []ChallengeCreatedResponse `json:"challenges"`
+	Challenges []GetChallengeResponse `json:"challenges"`
 }
 
 type VerifyAnswerRequest struct {
