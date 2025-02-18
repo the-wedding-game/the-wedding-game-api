@@ -24,10 +24,16 @@ jobs:
               cache-dependency-path: subdir/go.sum
 
           - name: Install dependencies
-            run: go get .
+            run: go mod download
 
           - name: Build project
             run: go build -v ./...
 
           - name: Run tests
-            run: go test -v ./... -cover
+            run: go test -v ./... -cover -coverprofile=coverage.txt
+
+          - name: Upload coverage reports to Codecov
+            uses: codecov/codecov-action@v5
+            with:
+              token: ${{ secrets.CODECOV_TOKEN }}
+              slug: the-wedding-game/the-wedding-game-api
