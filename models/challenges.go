@@ -19,7 +19,7 @@ type Challenge struct {
 }
 
 func GetChallengeByID(id uint) (Challenge, error) {
-	conn := db.GetDB()
+	conn := db.GetDbConnection()
 	var challenge Challenge
 	if err := conn.First(&challenge, id).Error; err != nil {
 		if gorm.IsRecordNotFoundError(err) {
@@ -31,7 +31,7 @@ func GetChallengeByID(id uint) (Challenge, error) {
 }
 
 func GetAllChallenges() ([]Challenge, error) {
-	conn := db.GetDB()
+	conn := db.GetDbConnection()
 	var challenges []Challenge
 	if err := conn.Find(&challenges).Error; err != nil {
 		return nil, err
@@ -53,7 +53,7 @@ func NewChallenge(name string, description string, points uint, image string, _t
 }
 
 func (challenge Challenge) Save() (Challenge, error) {
-	conn := db.GetDB()
+	conn := db.GetDbConnection()
 	if err := conn.Create(&challenge).Error; err != nil {
 		return Challenge{}, err
 	}

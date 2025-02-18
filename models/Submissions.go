@@ -24,7 +24,7 @@ func NewSubmission(userId uint, challengeId uint, answer string) Submission {
 }
 
 func (s *Submission) Save() (*Submission, error) {
-	conn := db.GetDB()
+	conn := db.GetDbConnection()
 	if err := conn.Create(s).Error; err != nil {
 		return nil, err
 	}
@@ -32,7 +32,7 @@ func (s *Submission) Save() (*Submission, error) {
 }
 
 func IsChallengeCompleted(userId uint, challengeId uint) (bool, error) {
-	conn := db.GetDB()
+	conn := db.GetDbConnection()
 	var submission Submission
 	err := conn.Where("user_id = ? AND challenge_id = ?", userId, challengeId).First(&submission).Error
 	if err != nil {
@@ -45,7 +45,7 @@ func IsChallengeCompleted(userId uint, challengeId uint) (bool, error) {
 }
 
 func GetCompletedChallenges(userId uint) ([]Submission, error) {
-	conn := db.GetDB()
+	conn := db.GetDbConnection()
 	var submissions []Submission
 	if err := conn.Where("user_id = ?", userId).Find(&submissions).Error; err != nil {
 		return nil, err

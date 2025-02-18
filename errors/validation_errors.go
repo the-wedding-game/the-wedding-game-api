@@ -5,6 +5,7 @@ import (
 )
 
 type ValidationError struct {
+	code    string
 	Message string
 }
 
@@ -13,7 +14,10 @@ func (e ValidationError) Error() string {
 }
 
 func NewValidationError(message string) ValidationError {
-	return ValidationError{Message: message}
+	return ValidationError{
+		code:    "ValidationError",
+		Message: message,
+	}
 }
 
 func IsValidationError(err error) bool {
