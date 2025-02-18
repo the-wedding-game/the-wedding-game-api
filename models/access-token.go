@@ -1,18 +1,18 @@
 package models
 
 import (
-	"fmt"
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 	"the-wedding-game-api/db"
+	apperrors "the-wedding-game-api/errors"
 	"time"
 )
 
 type AccessToken struct {
 	gorm.Model
-	Token     string `gorm:"unique" json:"token"`
-	UserID    uint   `json:"user_id"`
-	ExpiresOn int64  `json:"expires_on"`
+	Token     string `gorm:"unique"`
+	UserID    uint   `gorm:"not null"`
+	ExpiresOn int64  `gorm:"not null"`
 }
 
 func generateAccessToken() string {
@@ -34,12 +34,16 @@ func GetUserByAccessToken(token string) (User, error) {
 	conn := db.GetDB()
 	var accessToken AccessToken
 	if err := conn.Where("token = ?", token).First(&accessToken).Error; err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return User{}, apperrors.NewAccessTokenNotFoundError()
+		}
 		return User{}, err
 	}
+
 	var user User
 	if err := conn.Where("id = ?", accessToken.UserID).First(&user).Error; err != nil {
 		return User{}, err
 	}
-	fmt.Printf("User: %v\n", user)
+
 	return user, nil
 }

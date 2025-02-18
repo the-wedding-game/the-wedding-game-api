@@ -10,4 +10,5 @@ func init() {
 	conn.AutoMigrate(&AccessToken{})
 	conn.AutoMigrate(&Challenge{})
 	conn.AutoMigrate(&Answer{})
+	conn.AutoMigrate(&Submission{})
 }

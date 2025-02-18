@@ -3,25 +3,20 @@ package models
 import (
 	"github.com/jinzhu/gorm"
 	"the-wedding-game-api/db"
-)
-
-type UserRole string
-
-const (
-	Admin  UserRole = "ADMIN"
-	Player UserRole = "PLAYER"
+	apperrors "the-wedding-game-api/errors"
+	"the-wedding-game-api/types"
 )
 
 type User struct {
 	gorm.Model
-	Username string   `json:"username" validate:"required" gorm:"not null,unique"`
-	Role     UserRole `json:"role" validate:"required" gorm:"not null"`
+	Username string         `gorm:"unique;not null"`
+	Role     types.UserRole `gorm:"default:'PLAYER'"`
 }
 
 func NewUser(username string) User {
 	return User{
 		Username: username,
-		Role:     Player,
+		Role:     types.Player,
 	}
 }
 
@@ -30,7 +25,7 @@ func DoesUserExist(username string) (bool, User, error) {
 	conn := db.GetDB()
 	if err := conn.Where("username = ?", username).First(&user).Error; err != nil {
 		if gorm.IsRecordNotFoundError(err) {
-			return false, User{}, nil
+			return false, User{}, apperrors.NewNotFoundError("User", username)
 		}
 		return false, User{}, err
 	}

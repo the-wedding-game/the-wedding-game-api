@@ -2,7 +2,9 @@ package models
 
 import (
 	"github.com/jinzhu/gorm"
+	"strconv"
 	"the-wedding-game-api/db"
+	apperrors "the-wedding-game-api/errors"
 	"the-wedding-game-api/types"
 )
 
@@ -20,6 +22,9 @@ func GetChallengeByID(id uint) (Challenge, error) {
 	conn := db.GetDB()
 	var challenge Challenge
 	if err := conn.First(&challenge, id).Error; err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			return Challenge{}, apperrors.NewNotFoundError("Challenge", strconv.Itoa(int(id)))
+		}
 		return Challenge{}, err
 	}
 	return challenge, nil

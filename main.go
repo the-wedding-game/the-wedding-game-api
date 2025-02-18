@@ -9,6 +9,7 @@ import (
 func main() {
 	router := gin.Default()
 	router.Use(middleware.CORSMiddleware())
+	router.Use(middleware.ErrorHandler)
 
 	router.GET("/challenges/:id", routes.GetChallengeById)
 	router.POST("/challenges", routes.CreateChallenge)

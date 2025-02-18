@@ -1,12 +1,10 @@
 package validators
 
 import (
-	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
-	"log"
-	"net/http"
 	"strconv"
+	apperrors "the-wedding-game-api/errors"
 	"the-wedding-game-api/types"
 )
 
@@ -19,30 +17,20 @@ func init() {
 func ValidateCreateChallengeRequest(c *gin.Context) (types.CreateChallengeRequest, error) {
 	var createChallengeRequest types.CreateChallengeRequest
 	if err := c.BindJSON(&createChallengeRequest); err != nil {
-		log.Println(err)
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
-		return types.CreateChallengeRequest{}, err
+		return types.CreateChallengeRequest{}, apperrors.NewValidationError(err.Error())
 	}
 
 	err := validate.Struct(&createChallengeRequest)
 	if err != nil {
-		log.Println(err)
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
-		return types.CreateChallengeRequest{}, err
+		return types.CreateChallengeRequest{}, apperrors.NewValidationError(err.Error())
 	}
 
 	if createChallengeRequest.Type != types.UploadPhotoChallenge && createChallengeRequest.Type != types.AnswerQuestionChallenge {
-		err := errors.New("invalid challenge type")
-		log.Println(err)
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
-		return types.CreateChallengeRequest{}, err
+		return types.CreateChallengeRequest{}, apperrors.NewValidationError("invalid challenge type")
 	}
 
 	if createChallengeRequest.Type == types.AnswerQuestionChallenge && createChallengeRequest.Answer == "" {
-		err := errors.New("answer is required for answer question challenges")
-		log.Println(err)
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
-		return types.CreateChallengeRequest{}, err
+		return types.CreateChallengeRequest{}, apperrors.NewValidationError("answer is required for answer question challenges")
 	}
 
 	return createChallengeRequest, nil
@@ -51,9 +39,7 @@ func ValidateCreateChallengeRequest(c *gin.Context) (types.CreateChallengeReques
 func ValidateGetChallengeByIdRequest(c *gin.Context) (uint, error) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		log.Println(err)
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
-		return 0, err
+		return 0, apperrors.NewValidationError("invalid challenge id")
 	}
 
 	return uint(id), nil
@@ -62,22 +48,16 @@ func ValidateGetChallengeByIdRequest(c *gin.Context) (uint, error) {
 func ValidateVerifyAnswerRequest(c *gin.Context) (uint, types.VerifyAnswerRequest, error) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		log.Println(err)
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
-		return 0, types.VerifyAnswerRequest{}, err
+		return 0, types.VerifyAnswerRequest{}, apperrors.NewValidationError("invalid challenge id")
 	}
 
 	var verifyAnswerRequest types.VerifyAnswerRequest
 	if err := c.BindJSON(&verifyAnswerRequest); err != nil {
-		log.Println(err)
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
-		return 0, types.VerifyAnswerRequest{}, err
+		return 0, types.VerifyAnswerRequest{}, apperrors.NewValidationError(err.Error())
 	}
 
 	if err := validate.Struct(&verifyAnswerRequest); err != nil {
-		log.Println(err)
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
-		return 0, types.VerifyAnswerRequest{}, err
+		return 0, types.VerifyAnswerRequest{}, apperrors.NewValidationError(err.Error())
 	}
 
 	return uint(id), verifyAnswerRequest, nil
