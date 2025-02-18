@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gin-gonic/gin"
+	_ "github.com/joho/godotenv/autoload"
 	"the-wedding-game-api/middleware"
 	"the-wedding-game-api/routes"
 )

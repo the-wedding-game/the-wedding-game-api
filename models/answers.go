@@ -23,7 +23,7 @@ func NewAnswer(challengeId uint, value string) Answer {
 }
 
 func (answer Answer) Save() (Answer, error) {
-	conn := db.GetDB()
+	conn := db.GetDbConnection()
 	if err := conn.Create(&answer).Error; err != nil {
 		return Answer{}, err
 	}
@@ -31,7 +31,7 @@ func (answer Answer) Save() (Answer, error) {
 }
 
 func VerifyAnswer(challengeId uint, answer string) (bool, error) {
-	conn := db.GetDB()
+	conn := db.GetDbConnection()
 	var answerModel Answer
 
 	err := conn.Where("challenge_id = ?", challengeId).First(&answerModel).Error
