@@ -27,3 +27,15 @@ func (answer Answer) Save() (Answer, error) {
 	}
 	return answer, nil
 }
+
+func VerifyAnswer(challengeId uint, answer string) (bool, error) {
+	conn := db.GetDB()
+	var answerModel Answer
+
+	err := conn.Where("challenge_id = ?", challengeId).First(&answerModel).Error
+	if err != nil {
+		return false, err
+	}
+
+	return answerModel.Value == answer, nil
+}

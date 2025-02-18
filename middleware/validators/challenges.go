@@ -52,9 +52,33 @@ func ValidateGetChallengeByIdRequest(c *gin.Context) (uint, error) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		log.Println(err)
-		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return 0, err
 	}
 
 	return uint(id), nil
+}
+
+func ValidateVerifyAnswerRequest(c *gin.Context) (uint, types.VerifyAnswerRequest, error) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		log.Println(err)
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return 0, types.VerifyAnswerRequest{}, err
+	}
+
+	var verifyAnswerRequest types.VerifyAnswerRequest
+	if err := c.BindJSON(&verifyAnswerRequest); err != nil {
+		log.Println(err)
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return 0, types.VerifyAnswerRequest{}, err
+	}
+
+	if err := validate.Struct(&verifyAnswerRequest); err != nil {
+		log.Println(err)
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return 0, types.VerifyAnswerRequest{}, err
+	}
+
+	return uint(id), verifyAnswerRequest, nil
 }

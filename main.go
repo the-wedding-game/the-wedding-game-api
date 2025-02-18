@@ -13,6 +13,7 @@ func main() {
 	router.GET("/challenges/:id", routes.GetChallengeById)
 	router.POST("/challenges", routes.CreateChallenge)
 	router.GET("/challenges", routes.GetAllChallenges)
+	router.POST("/challenges/:id/verify", routes.VerifyAnswer)
 
 	router.POST("/auth/login", routes.Login)
 	router.GET("/auth/current-user", routes.GetCurrentUser)

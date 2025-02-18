@@ -36,3 +36,11 @@ type ChallengeCreatedResponse struct {
 type GetChallengesResponse struct {
 	Challenges []ChallengeCreatedResponse `json:"challenges"`
 }
+
+type VerifyAnswerRequest struct {
+	Answer string `json:"answer" binding:"required" validate:"required"`
+}
+
+type VerifyAnswerResponse struct {
+	Correct bool `json:"correct"`
+}

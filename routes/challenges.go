@@ -2,6 +2,7 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
 	"log"
 	"net/http"
 	"the-wedding-game-api/middleware"
@@ -18,6 +19,11 @@ func GetChallengeById(c *gin.Context) {
 
 	challenge, err := models.GetChallengeByID(id)
 	if err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Challenge not found"})
+			return
+		}
+
 		log.Println(err)
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err})
 		return
@@ -87,6 +93,39 @@ func GetAllChallenges(c *gin.Context) {
 		})
 	}
 
+	c.IndentedJSON(http.StatusOK, response)
+	return
+}
+
+func VerifyAnswer(c *gin.Context) {
+	if middleware.CheckIsLoggedIn(c) != nil {
+		return
+	}
+
+	challengeId, verifyAnswerRequest, err := validators.ValidateVerifyAnswerRequest(c)
+	if err != nil {
+		return
+	}
+
+	correct, err := models.VerifyAnswer(challengeId, verifyAnswerRequest.Answer)
+	if err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Answer not found"})
+			return
+		}
+
+		log.Println(err)
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	if correct {
+		response := types.VerifyAnswerResponse{Correct: true}
+		c.IndentedJSON(http.StatusOK, response)
+		return
+	}
+
+	response := types.VerifyAnswerResponse{Correct: false}
 	c.IndentedJSON(http.StatusOK, response)
 	return
 }
