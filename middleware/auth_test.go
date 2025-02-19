@@ -9,13 +9,6 @@ import (
 	"the-wedding-game-api/types"
 )
 
-func setupMockDb() {
-	mockDB := &test.MockDB{}
-	db.GetConnection = func() db.DatabaseInterface {
-		return mockDB
-	}
-}
-
 func createTestAccessToken(accessToken models.AccessToken) {
 	database := db.GetConnection()
 	database.Create(&accessToken)
@@ -33,7 +26,7 @@ var (
 )
 
 func TestGetCurrentUser(t *testing.T) {
-	setupMockDb()
+	test.SetupMockDb()
 	createTestAccessToken(testAccessToken)
 	createTestUser(testUser)
 
@@ -90,7 +83,7 @@ func TestGetCurrentUserInvalidAccessTokenFormat(t *testing.T) {
 }
 
 func TestCheckIsLoggedIn(t *testing.T) {
-	setupMockDb()
+	test.SetupMockDb()
 	createTestAccessToken(testAccessToken)
 	createTestUser(testUser)
 
@@ -139,7 +132,7 @@ func TestCheckIsLoggedInInvalidAccessTokenFormat(t *testing.T) {
 }
 
 func TestCheckIsAdmin(t *testing.T) {
-	setupMockDb()
+	test.SetupMockDb()
 	createTestAccessToken(testAccessToken)
 	createTestUser(testUserAdmin)
 
@@ -153,7 +146,7 @@ func TestCheckIsAdmin(t *testing.T) {
 }
 
 func TestCheckIsAdminNotAdmin(t *testing.T) {
-	setupMockDb()
+	test.SetupMockDb()
 	createTestAccessToken(testAccessToken)
 	createTestUser(testUser)
 
