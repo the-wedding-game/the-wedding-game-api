@@ -9,6 +9,12 @@ import (
 	"the-wedding-game-api/types"
 )
 
+var (
+	testAccessToken = models.AccessToken{Token: "test_token", UserID: 1, ExpiresOn: 1}
+	testUser        = models.User{Username: "test_username", Role: types.Player}
+	testUserAdmin   = models.User{Username: "test_username", Role: types.Admin}
+)
+
 func createTestAccessToken(accessToken models.AccessToken) {
 	database := db.GetConnection()
 	database.Create(&accessToken)
@@ -18,12 +24,6 @@ func createTestUser(user models.User) {
 	database := db.GetConnection()
 	database.Create(&user)
 }
-
-var (
-	testAccessToken = models.AccessToken{Token: "test_token", UserID: 1, ExpiresOn: 1}
-	testUser        = models.User{Username: "test_username", Role: types.Player}
-	testUserAdmin   = models.User{Username: "test_username", Role: types.Admin}
-)
 
 func TestGetCurrentUser(t *testing.T) {
 	test.SetupMockDb()

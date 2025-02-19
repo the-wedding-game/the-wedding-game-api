@@ -7,11 +7,12 @@ import (
 	"the-wedding-game-api/db"
 )
 
-func SetupMockDb() {
-	mockDB := &test.MockDB{}
+func SetupMockDb() *MockDB {
+	mockDB := &MockDB{}
 	db.GetConnection = func() db.DatabaseInterface {
 		return mockDB
 	}
+	return mockDB
 }
 
 func GenerateBasicRequest() *gin.Context {
