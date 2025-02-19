@@ -3,6 +3,8 @@ package validators
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"net/url"
+	"regexp"
 	"strconv"
 	apperrors "the-wedding-game-api/errors"
 	"the-wedding-game-api/types"
@@ -33,6 +35,10 @@ func ValidateCreateChallengeRequest(c *gin.Context) (types.CreateChallengeReques
 		return types.CreateChallengeRequest{}, apperrors.NewValidationError("answer is required for answer question challenges")
 	}
 
+	if !isURLStrict(createChallengeRequest.Image) {
+		return types.CreateChallengeRequest{}, apperrors.NewValidationError("invalid image url")
+	}
+
 	return createChallengeRequest, nil
 }
 
@@ -61,4 +67,18 @@ func ValidateVerifyAnswerRequest(c *gin.Context) (uint, types.VerifyAnswerReques
 	}
 
 	return uint(id), verifyAnswerRequest, nil
+}
+
+func isURLStrict(s string) bool {
+	u, err := url.ParseRequestURI(s)
+	if err != nil {
+		return false
+	}
+
+	if u.Scheme == "" || u.Host == "" { // Must have scheme and host
+		return false
+	}
+
+	r := regexp.MustCompile(`^(?:http(s)?://)?[\w.-]+(?:\.[\w.-]+)+[\w\-._~:/?#[\]@!$&'()*+,;=]+$`)
+	return r.MatchString(s)
 }
