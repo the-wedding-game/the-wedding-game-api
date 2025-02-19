@@ -17,7 +17,8 @@ func (m *MockDB) Where(_ interface{}, _ ...interface{}) db.DatabaseInterface {
 
 func (m *MockDB) First(dest interface{}, _ ...interface{}) db.DatabaseInterface {
 	if len(m.items) == 0 {
-		m.Error = errors.New("record not found")
+		destValue := reflect.ValueOf(dest)
+		m.Error = errors.New("record not found: " + destValue.Type().String())
 		return m
 	}
 
@@ -47,5 +48,5 @@ func (m *MockDB) Find(_ interface{}, _ ...interface{}) db.DatabaseInterface {
 }
 
 func (m *MockDB) GetError() error {
-	return nil
+	return m.Error
 }

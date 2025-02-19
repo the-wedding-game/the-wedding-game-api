@@ -9,12 +9,11 @@ import (
 	"the-wedding-game-api/types"
 )
 
-func setupMockDb() {
-	mockDB := &test.MockDB{}
-	db.GetConnection = func() db.DatabaseInterface {
-		return mockDB
-	}
-}
+var (
+	testAccessToken = models.AccessToken{Token: "test_token", UserID: 1, ExpiresOn: 1}
+	testUser        = models.User{Username: "test_username", Role: types.Player}
+	testUserAdmin   = models.User{Username: "test_username", Role: types.Admin}
+)
 
 func createTestAccessToken(accessToken models.AccessToken) {
 	database := db.GetConnection()
@@ -26,14 +25,8 @@ func createTestUser(user models.User) {
 	database.Create(&user)
 }
 
-var (
-	testAccessToken = models.AccessToken{Token: "test_token", UserID: 1, ExpiresOn: 1}
-	testUser        = models.User{Username: "test_username", Role: types.Player}
-	testUserAdmin   = models.User{Username: "test_username", Role: types.Admin}
-)
-
 func TestGetCurrentUser(t *testing.T) {
-	setupMockDb()
+	test.SetupMockDb()
 	createTestAccessToken(testAccessToken)
 	createTestUser(testUser)
 
@@ -90,7 +83,7 @@ func TestGetCurrentUserInvalidAccessTokenFormat(t *testing.T) {
 }
 
 func TestCheckIsLoggedIn(t *testing.T) {
-	setupMockDb()
+	test.SetupMockDb()
 	createTestAccessToken(testAccessToken)
 	createTestUser(testUser)
 
@@ -139,7 +132,7 @@ func TestCheckIsLoggedInInvalidAccessTokenFormat(t *testing.T) {
 }
 
 func TestCheckIsAdmin(t *testing.T) {
-	setupMockDb()
+	test.SetupMockDb()
 	createTestAccessToken(testAccessToken)
 	createTestUser(testUserAdmin)
 
@@ -153,7 +146,7 @@ func TestCheckIsAdmin(t *testing.T) {
 }
 
 func TestCheckIsAdminNotAdmin(t *testing.T) {
-	setupMockDb()
+	test.SetupMockDb()
 	createTestAccessToken(testAccessToken)
 	createTestUser(testUser)
 

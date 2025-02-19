@@ -4,7 +4,16 @@ import (
 	"bytes"
 	"github.com/gin-gonic/gin"
 	"net/http/httptest"
+	"the-wedding-game-api/db"
 )
+
+func SetupMockDb() *MockDB {
+	mockDB := &MockDB{}
+	db.GetConnection = func() db.DatabaseInterface {
+		return mockDB
+	}
+	return mockDB
+}
 
 func GenerateBasicRequest() *gin.Context {
 	gin.SetMode(gin.TestMode)
