@@ -20,20 +20,20 @@ func generateAccessToken() string {
 }
 
 func LinkAccessTokenToUser(userId uint) (AccessToken, error) {
-	conn := db.GetDbConnection()
+	conn := db.GetConnection()
 	token := generateAccessToken()
 	expiresOn := time.Now().Add(24 * time.Hour).Unix()
 	accessToken := AccessToken{Token: token, UserID: userId, ExpiresOn: expiresOn}
-	if err := conn.Create(&accessToken).Error; err != nil {
+	if err := conn.Create(&accessToken).GetError(); err != nil {
 		return AccessToken{}, err
 	}
 	return accessToken, nil
 }
 
 func GetUserByAccessToken(token string) (User, error) {
-	conn := db.GetDbConnection()
+	conn := db.GetConnection()
 	var accessToken AccessToken
-	if err := conn.Where("token = ?", token).First(&accessToken).Error; err != nil {
+	if err := conn.Where("token = ?", token).First(&accessToken).GetError(); err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return User{}, apperrors.NewAccessTokenNotFoundError()
 		}
@@ -41,7 +41,7 @@ func GetUserByAccessToken(token string) (User, error) {
 	}
 
 	var user User
-	if err := conn.Where("id = ?", accessToken.UserID).First(&user).Error; err != nil {
+	if err := conn.Where("id = ?", accessToken.UserID).First(&user).GetError(); err != nil {
 		return User{}, err
 	}
 

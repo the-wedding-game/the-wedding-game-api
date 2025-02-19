@@ -23,18 +23,18 @@ func NewAnswer(challengeId uint, value string) Answer {
 }
 
 func (answer Answer) Save() (Answer, error) {
-	conn := db.GetDbConnection()
-	if err := conn.Create(&answer).Error; err != nil {
+	conn := db.GetConnection()
+	if err := conn.Create(&answer).GetError(); err != nil {
 		return Answer{}, err
 	}
 	return answer, nil
 }
 
 func VerifyAnswer(challengeId uint, answer string) (bool, error) {
-	conn := db.GetDbConnection()
+	conn := db.GetConnection()
 	var answerModel Answer
 
-	err := conn.Where("challenge_id = ?", challengeId).First(&answerModel).Error
+	err := conn.Where("challenge_id = ?", challengeId).First(&answerModel).GetError()
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return false, apperrors.NewNotFoundError("Challenge", strconv.Itoa(int(challengeId)))
