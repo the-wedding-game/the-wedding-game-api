@@ -19,9 +19,9 @@ type Challenge struct {
 }
 
 func GetChallengeByID(id uint) (Challenge, error) {
-	conn := db.GetDbConnection()
+	conn := db.GetConnection()
 	var challenge Challenge
-	if err := conn.First(&challenge, id).Error; err != nil {
+	if err := conn.First(&challenge, id).GetError(); err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return Challenge{}, apperrors.NewNotFoundError("Challenge", strconv.Itoa(int(id)))
 		}
@@ -31,9 +31,9 @@ func GetChallengeByID(id uint) (Challenge, error) {
 }
 
 func GetAllChallenges() ([]Challenge, error) {
-	conn := db.GetDbConnection()
+	conn := db.GetConnection()
 	var challenges []Challenge
-	if err := conn.Find(&challenges).Error; err != nil {
+	if err := conn.Find(&challenges).GetError(); err != nil {
 		return nil, err
 	}
 	return challenges, nil
@@ -53,8 +53,8 @@ func NewChallenge(name string, description string, points uint, image string, _t
 }
 
 func (challenge Challenge) Save() (Challenge, error) {
-	conn := db.GetDbConnection()
-	if err := conn.Create(&challenge).Error; err != nil {
+	conn := db.GetConnection()
+	if err := conn.Create(&challenge).GetError(); err != nil {
 		return Challenge{}, err
 	}
 	return challenge, nil

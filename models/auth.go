@@ -22,8 +22,8 @@ func NewUser(username string) User {
 
 func DoesUserExist(username string) (bool, User, error) {
 	var user User
-	conn := db.GetDbConnection()
-	if err := conn.Where("username = ?", username).First(&user).Error; err != nil {
+	conn := db.GetConnection()
+	if err := conn.Where("username = ?", username).First(&user).GetError(); err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return false, User{}, apperrors.NewNotFoundError("User", username)
 		}
@@ -33,8 +33,8 @@ func DoesUserExist(username string) (bool, User, error) {
 }
 
 func (user User) Save() (User, error) {
-	conn := db.GetDbConnection()
-	if err := conn.Create(&user).Error; err != nil {
+	conn := db.GetConnection()
+	if err := conn.Create(&user).GetError(); err != nil {
 		return User{}, err
 	}
 	return user, nil

@@ -24,17 +24,17 @@ func NewSubmission(userId uint, challengeId uint, answer string) Submission {
 }
 
 func (s *Submission) Save() (*Submission, error) {
-	conn := db.GetDbConnection()
-	if err := conn.Create(s).Error; err != nil {
+	conn := db.GetConnection()
+	if err := conn.Create(s).GetError(); err != nil {
 		return nil, err
 	}
 	return s, nil
 }
 
 func IsChallengeCompleted(userId uint, challengeId uint) (bool, error) {
-	conn := db.GetDbConnection()
+	conn := db.GetConnection()
 	var submission Submission
-	err := conn.Where("user_id = ? AND challenge_id = ?", userId, challengeId).First(&submission).Error
+	err := conn.Where("user_id = ? AND challenge_id = ?", userId, challengeId).First(&submission).GetError()
 	if err != nil {
 		if gorm.IsRecordNotFoundError(err) {
 			return false, nil
@@ -45,9 +45,9 @@ func IsChallengeCompleted(userId uint, challengeId uint) (bool, error) {
 }
 
 func GetCompletedChallenges(userId uint) ([]Submission, error) {
-	conn := db.GetDbConnection()
+	conn := db.GetConnection()
 	var submissions []Submission
-	if err := conn.Where("user_id = ?", userId).Find(&submissions).Error; err != nil {
+	if err := conn.Where("user_id = ?", userId).Find(&submissions).GetError(); err != nil {
 		return nil, err
 	}
 	return submissions, nil
