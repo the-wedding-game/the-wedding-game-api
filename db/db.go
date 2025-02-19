@@ -1,7 +1,5 @@
 package db
 
-import "fmt"
-
 type DatabaseInterface interface {
 	Where(query interface{}, args ...interface{}) DatabaseInterface
 	First(dest interface{}, where ...interface{}) DatabaseInterface
@@ -11,7 +9,6 @@ type DatabaseInterface interface {
 }
 
 func getConnection() DatabaseInterface {
-	fmt.Println("Connecting to database")
 	return newDatabase()
 }
 
