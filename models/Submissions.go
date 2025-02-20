@@ -31,6 +31,7 @@ func (s *Submission) Save() (*Submission, error) {
 	return s, nil
 }
 
+// TODO: replace all instances of `gorm.IsRecordNotFoundError` with custom error type
 func IsChallengeCompleted(userId uint, challengeId uint) (bool, error) {
 	conn := db.GetConnection()
 	var submission Submission
