@@ -42,7 +42,7 @@ jobs:
           - name: Build project
             run: go build -v ./...
 
-          - name: Run tests
+          - name: Run _tests
             run: go test -v ./... -cover -coverprofile=coverage.txt
 
           - name: Upload coverage reports to Codecov

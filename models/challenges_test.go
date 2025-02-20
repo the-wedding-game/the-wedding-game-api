@@ -3,7 +3,7 @@ package models
 import (
 	"errors"
 	"testing"
-	test "the-wedding-game-api/_test"
+	test "the-wedding-game-api/_tests"
 	"the-wedding-game-api/db"
 	"the-wedding-game-api/types"
 )

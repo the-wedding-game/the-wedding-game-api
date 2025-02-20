@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"testing"
-	test "the-wedding-game-api/_test"
+	test "the-wedding-game-api/_tests"
 )
 
 func TestCORSMiddleware(t *testing.T) {

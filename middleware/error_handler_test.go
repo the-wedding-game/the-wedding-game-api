@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"testing"
-	test "the-wedding-game-api/_test"
+	test "the-wedding-game-api/_tests"
 	apperrors "the-wedding-game-api/errors"
 )
 
