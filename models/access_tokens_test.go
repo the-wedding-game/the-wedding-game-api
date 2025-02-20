@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 	test "the-wedding-game-api/_test"
 	"the-wedding-game-api/db"
@@ -40,7 +39,6 @@ func TestLinkAccessTokenToUser(t *testing.T) {
 	}
 
 	in24Hours := time.Now().Add(24 * time.Hour).Unix()
-	fmt.Println(in24Hours)
 	if in24Hours-accessToken.ExpiresOn > 1 {
 		t.Errorf("Access token expiry time invalid")
 	}
