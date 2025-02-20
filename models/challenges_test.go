@@ -440,7 +440,7 @@ func TestGetChallengeByIDNotFound(t *testing.T) {
 		return
 	}
 
-	if err.Error() != "record not found: *models.Challenge" {
-		t.Errorf("expected record not found: *models.Challenge but got %s", err.Error())
+	if err.Error() != "Challenge with key 1 not found." {
+		t.Errorf("expected Challenge with key 1 not found. but got %s", err.Error())
 	}
 }

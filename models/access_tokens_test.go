@@ -5,6 +5,7 @@ import (
 	"testing"
 	test "the-wedding-game-api/_test"
 	"the-wedding-game-api/db"
+	apperrors "the-wedding-game-api/errors"
 	"time"
 )
 
@@ -55,6 +56,9 @@ func TestLinkAccessTokenToUserNegative(t *testing.T) {
 		return
 	}
 
+	if !apperrors.IsDatabaseError(err) {
+		t.Errorf("expected database error but got %s", err.Error())
+	}
 	if err.Error() != "test_error" {
 		t.Errorf("expected error but got %s", err.Error())
 	}
@@ -85,8 +89,11 @@ func TestGetUserByAccessTokenNotFound(t *testing.T) {
 		return
 	}
 
-	if err.Error() != "record not found: *models.AccessToken" {
-		t.Errorf("expected record not found: *models.AccessToken but got %s", err.Error())
+	if !apperrors.IsAccessTokenNotFoundError(err) {
+		t.Errorf("expected access token not found error but got %s", err.Error())
+	}
+	if err.Error() != "access token not found" {
+		t.Errorf("expected access token not found but got %s", err.Error())
 	}
 }
 
@@ -100,7 +107,10 @@ func TestGetUserByAccessTokenUserNotFound(t *testing.T) {
 		return
 	}
 
-	if err.Error() != "record not found: *models.User" {
-		t.Errorf("expected record not found: *models.User but got %s", err.Error())
+	if !apperrors.IsNotFoundError(err) {
+		t.Errorf("expected not found error but got %s", err.Error())
+	}
+	if err.Error() != "User with key 1 not found." {
+		t.Errorf("expected User with key 1 not found. but got %s", err.Error())
 	}
 }

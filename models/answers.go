@@ -36,7 +36,7 @@ func VerifyAnswer(challengeId uint, answer string) (bool, error) {
 
 	err := conn.Where("challenge_id = ?", challengeId).First(&answerModel).GetError()
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if apperrors.IsRecordNotFoundError(err) {
 			return false, apperrors.NewNotFoundError("Challenge", strconv.Itoa(int(challengeId)))
 		}
 		return false, err

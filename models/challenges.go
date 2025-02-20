@@ -81,7 +81,7 @@ func GetChallengeByID(id uint) (Challenge, error) {
 	conn := db.GetConnection()
 	var challenge Challenge
 	if err := conn.First(&challenge, id).GetError(); err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if apperrors.IsRecordNotFoundError(err) {
 			return Challenge{}, apperrors.NewNotFoundError("Challenge", strconv.Itoa(int(id)))
 		}
 		return Challenge{}, err

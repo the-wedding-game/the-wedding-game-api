@@ -3,6 +3,7 @@ package models
 import (
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
+	"strconv"
 	"the-wedding-game-api/db"
 	apperrors "the-wedding-game-api/errors"
 	"time"
@@ -34,7 +35,7 @@ func GetUserByAccessToken(token string) (User, error) {
 	conn := db.GetConnection()
 	var accessToken AccessToken
 	if err := conn.Where("token = ?", token).First(&accessToken).GetError(); err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if apperrors.IsRecordNotFoundError(err) {
 			return User{}, apperrors.NewAccessTokenNotFoundError()
 		}
 		return User{}, err
@@ -42,6 +43,9 @@ func GetUserByAccessToken(token string) (User, error) {
 
 	var user User
 	if err := conn.Where("id = ?", accessToken.UserID).First(&user).GetError(); err != nil {
+		if apperrors.IsRecordNotFoundError(err) {
+			return User{}, apperrors.NewNotFoundError("User", strconv.Itoa(int(accessToken.UserID)))
+		}
 		return User{}, err
 	}
 

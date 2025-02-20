@@ -3,6 +3,7 @@ package models
 import (
 	"github.com/jinzhu/gorm"
 	"the-wedding-game-api/db"
+	apperrors "the-wedding-game-api/errors"
 )
 
 type Submission struct {
@@ -31,13 +32,12 @@ func (s *Submission) Save() (*Submission, error) {
 	return s, nil
 }
 
-// TODO: replace all instances of `gorm.IsRecordNotFoundError` with custom error type
 func IsChallengeCompleted(userId uint, challengeId uint) (bool, error) {
 	conn := db.GetConnection()
 	var submission Submission
 	err := conn.Where("user_id = ? AND challenge_id = ?", userId, challengeId).First(&submission).GetError()
 	if err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if apperrors.IsRecordNotFoundError(err) {
 			return false, nil
 		}
 		return false, err

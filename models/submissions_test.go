@@ -5,6 +5,7 @@ import (
 	"testing"
 	test "the-wedding-game-api/_test"
 	"the-wedding-game-api/db"
+	apperrors "the-wedding-game-api/errors"
 )
 
 var (
@@ -78,6 +79,9 @@ func TestSubmissionSaveError(t *testing.T) {
 		t.Errorf("expected error but got nil")
 		return
 	}
+	if !apperrors.IsDatabaseError(err) {
+		t.Errorf("expected true but got false")
+	}
 	if err.Error() != "test_error" {
 		t.Errorf("expected test_error but got %s", err.Error())
 	}
@@ -104,13 +108,13 @@ func TestIsChallengeCompleted(t *testing.T) {
 func TestIsChallengeCompletedNotFound(t *testing.T) {
 	test.SetupMockDb()
 
-	_, err := IsChallengeCompleted(testSubmission1.UserId, testSubmission1.ChallengeID)
-	if err == nil {
-		t.Errorf("expected error but got nil")
+	isCompleted, err := IsChallengeCompleted(testSubmission1.UserId, testSubmission1.ChallengeID)
+	if err != nil {
+		t.Errorf("expected nil but got %v", err)
 		return
 	}
-	if err.Error() != "record not found: *models.Submission" {
-		t.Errorf("expected record not found: *models.Submission but got %s", err.Error())
+	if isCompleted {
+		t.Errorf("expected false but got true")
 	}
 }
 
@@ -128,6 +132,9 @@ func TestIsChallengeCompletedError(t *testing.T) {
 	if err == nil {
 		t.Errorf("expected error but got nil")
 		return
+	}
+	if !apperrors.IsDatabaseError(err) {
+		t.Errorf("expected true but got false")
 	}
 	if err.Error() != "test_error" {
 		t.Errorf("expected test_error but got %s", err.Error())
