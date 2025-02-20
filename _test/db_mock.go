@@ -43,8 +43,30 @@ func (m *MockDB) Create(value interface{}) db.DatabaseInterface {
 	return m
 }
 
-func (m *MockDB) Find(_ interface{}, _ ...interface{}) db.DatabaseInterface {
-	return nil
+func (m *MockDB) Find(dest interface{}, _ ...interface{}) db.DatabaseInterface {
+	destValue := reflect.ValueOf(dest)
+	if destValue.Kind() != reflect.Ptr || destValue.IsNil() {
+		m.Error = errors.New("dest must be a non-nil pointer")
+		return m
+	}
+
+	if destValue.Elem().Kind() != reflect.Slice {
+		m.Error = errors.New("dest must be a pointer to a slice")
+		return m
+	}
+
+	sliceType := destValue.Elem().Type()
+	sliceValue := reflect.MakeSlice(sliceType, len(m.items), len(m.items))
+	for i := 0; i < len(m.items); i++ {
+		itemValue := reflect.ValueOf(m.items[i])
+		if itemValue.Kind() == reflect.Ptr {
+			itemValue = itemValue.Elem()
+		}
+		sliceValue.Index(i).Set(itemValue)
+	}
+
+	destValue.Elem().Set(sliceValue)
+	return m
 }
 
 func (m *MockDB) GetError() error {

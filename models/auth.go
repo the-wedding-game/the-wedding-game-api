@@ -3,7 +3,6 @@ package models
 import (
 	"github.com/jinzhu/gorm"
 	"the-wedding-game-api/db"
-	apperrors "the-wedding-game-api/errors"
 	"the-wedding-game-api/types"
 )
 
@@ -25,7 +24,7 @@ func DoesUserExist(username string) (bool, User, error) {
 	conn := db.GetConnection()
 	if err := conn.Where("username = ?", username).First(&user).GetError(); err != nil {
 		if gorm.IsRecordNotFoundError(err) {
-			return false, User{}, apperrors.NewNotFoundError("User", username)
+			return false, User{}, nil
 		}
 		return false, User{}, err
 	}
