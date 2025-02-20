@@ -1,5 +1,7 @@
 package db
 
+var databaseConnection DatabaseInterface
+
 type DatabaseInterface interface {
 	Where(query interface{}, args ...interface{}) DatabaseInterface
 	First(dest interface{}, where ...interface{}) DatabaseInterface
@@ -9,7 +11,11 @@ type DatabaseInterface interface {
 }
 
 func getConnection() DatabaseInterface {
-	return newDatabase()
+	if databaseConnection != nil {
+		return databaseConnection
+	}
+	databaseConnection = newDatabase()
+	return databaseConnection
 }
 
 var GetConnection = getConnection

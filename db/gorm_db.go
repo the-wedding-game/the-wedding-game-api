@@ -57,7 +57,7 @@ func newDatabase() DatabaseInterface {
 
 	db, err := gorm.Open("postgres", dbURI)
 	if err != nil {
-		log.Println(err)
+		log.Printf("Error connecting to database: %v\n", err)
 		log.Fatal("Could not connect database")
 	}
 
