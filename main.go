@@ -1,27 +1,24 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
+	"flag"
+	"fmt"
 	_ "github.com/joho/godotenv/autoload"
-	"the-wedding-game-api/middleware"
+	"log"
 	"the-wedding-game-api/routes"
 )
 
 func main() {
-	router := gin.Default()
-	router.Use(middleware.CORSMiddleware())
-	router.Use(middleware.ErrorHandler)
+	router := routes.GetRouter()
 
-	router.GET("/challenges/:id", routes.GetChallengeById)
-	router.POST("/challenges", routes.CreateChallenge)
-	router.GET("/challenges", routes.GetAllChallenges)
-	router.POST("/challenges/:id/verify", routes.VerifyAnswer)
+	port := flag.String("p", "8080", "port to run the server on")
+	flag.Parse()
 
-	router.POST("/auth/login", routes.Login)
-	router.GET("/auth/current-user", routes.GetCurrentUser)
-
-	err := router.Run("localhost:8080")
+	err := router.Run(fmt.Sprintf("localhost:%s", *port))
 	if err != nil {
+		log.Println("Error starting server: ", err)
 		return
 	}
+
+	log.Println("Server started on port ", *port)
 }

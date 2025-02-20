@@ -23,8 +23,8 @@ func Login(c *gin.Context) {
 	}
 
 	if !exists {
-		user := models.NewUser(loginRequest.Username)
-		user, err := user.Save()
+		user = models.NewUser(loginRequest.Username)
+		user, err = user.Save()
 		if err != nil {
 			_ = c.Error(err)
 			return

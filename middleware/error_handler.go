@@ -3,6 +3,7 @@ package middleware
 import (
 	"log"
 	"net/http"
+	"strings"
 	apperrors "the-wedding-game-api/errors"
 
 	"github.com/gin-gonic/gin"
@@ -24,7 +25,7 @@ func ErrorHandler(c *gin.Context) {
 			return
 		}
 
-		if apperrors.IsValidationError(err.Err) {
+		if apperrors.IsValidationError(err.Err) || strings.Contains(err.Err.Error(), "Error:Field validation for") {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"status":  "error",
 				"message": err.Err.Error(),
