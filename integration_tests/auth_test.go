@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	test "the-wedding-game-api/_tests"
 	"the-wedding-game-api/db"
 	"the-wedding-game-api/models"
 	"the-wedding-game-api/routes"
@@ -17,12 +18,12 @@ import (
 var router *gin.Engine
 
 func TestMain(m *testing.M) {
-	Setup()
+	test.Setup()
 	router = routes.GetRouter()
 
 	code := m.Run()
 
-	TearDown()
+	test.TearDown()
 	os.Exit(code)
 }
 
