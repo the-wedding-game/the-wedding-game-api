@@ -1,4 +1,4 @@
-package routes
+package integrationtests
 
 import (
 	"bytes"
@@ -8,21 +8,21 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
-	integrationtests "the-wedding-game-api/_test/integration"
 	"the-wedding-game-api/db"
 	"the-wedding-game-api/models"
+	"the-wedding-game-api/routes"
 	"the-wedding-game-api/types"
 )
 
 var router *gin.Engine
 
 func TestMain(m *testing.M) {
-	integrationtests.Setup()
-	router = GetRouter()
+	Setup()
+	router = routes.GetRouter()
 
 	code := m.Run()
 
-	integrationtests.TearDown()
+	TearDown()
 	os.Exit(code)
 }
 
