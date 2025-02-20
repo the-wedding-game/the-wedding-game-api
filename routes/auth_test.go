@@ -1,4 +1,4 @@
-package integration_tests
+package routes
 
 import (
 	"bytes"
@@ -7,24 +7,21 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
+	integration_tests "the-wedding-game-api/_test/integration"
 	"the-wedding-game-api/db"
 	"the-wedding-game-api/models"
-	"the-wedding-game-api/routes"
 	"the-wedding-game-api/types"
 )
 
 func TestMain(m *testing.M) {
-	dockerComposeUp()
-	setupTestDb()
-
+	integration_tests.Setup()
 	code := m.Run()
-
-	dockerComposeDown()
+	integration_tests.TearDown()
 	os.Exit(code)
 }
 
 func makeRequest(method string, path string, bodyObj interface{}) (int, string) {
-	router := routes.GetRouter()
+	router := GetRouter()
 
 	body, err := json.Marshal(bodyObj)
 	if err != nil {

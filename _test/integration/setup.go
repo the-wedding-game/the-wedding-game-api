@@ -10,11 +10,20 @@ import (
 	"time"
 )
 
+func Setup() {
+	dockerComposeUp()
+	setupTestDb()
+}
+
+func TearDown() {
+	dockerComposeDown()
+}
+
 func dockerComposeUp() {
 	dockerComposeDown()
 	log.Println("Starting Docker Compose...")
 
-	cmdUp := exec.Command("docker-compose", "-f", "docker-compose.yml", "up", "-d")
+	cmdUp := exec.Command("docker-compose", "-f", "../_test/integration/docker-compose.yml", "up", "-d")
 	if err := cmdUp.Run(); err != nil {
 		log.Fatalf("Failed to start Docker Compose: %v", err)
 	}
@@ -23,7 +32,7 @@ func dockerComposeUp() {
 func dockerComposeDown() {
 	log.Println("Stopping Docker Compose...")
 
-	cmdDown := exec.Command("docker-compose", "-f", "docker-compose.yml", "down")
+	cmdDown := exec.Command("docker-compose", "-f", "../_test/integration/docker-compose.yml", "down")
 	if err := cmdDown.Run(); err != nil {
 		log.Fatalf("Failed to stop Docker Compose: %v", err)
 	}
