@@ -6,13 +6,11 @@ import (
 	"testing"
 	test "the-wedding-game-api/_test"
 	"the-wedding-game-api/db"
-	"the-wedding-game-api/types"
 	"time"
 )
 
 var (
 	testAccessToken = AccessToken{Token: "test_token", UserID: 1, ExpiresOn: 1}
-	testUser        = User{Username: "test_username", Role: types.Player}
 )
 
 func createTestAccessToken(accessToken AccessToken) {
