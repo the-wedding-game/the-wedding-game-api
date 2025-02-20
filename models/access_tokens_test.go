@@ -114,3 +114,24 @@ func TestGetUserByAccessTokenUserNotFound(t *testing.T) {
 		t.Errorf("expected User with key 1 not found. but got %s", err.Error())
 	}
 }
+
+func TestGetUserByAccessTokenError(t *testing.T) {
+	mockDb := test.SetupMockDb()
+	createTestAccessToken(testAccessToken)
+	createTestUser(testUser)
+
+	mockDb.Error = errors.New("test_error")
+
+	_, err := GetUserByAccessToken("test_access_token")
+	if err == nil {
+		t.Errorf("expected error but got nil")
+		return
+	}
+
+	if !apperrors.IsDatabaseError(err) {
+		t.Errorf("expected database error but got %s", err.Error())
+	}
+	if err.Error() != "test_error" {
+		t.Errorf("expected error but got %s", err.Error())
+	}
+}

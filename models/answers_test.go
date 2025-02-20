@@ -129,3 +129,22 @@ func TestVerifyAnswerNotFound(t *testing.T) {
 		t.Errorf("expected Challenge with key 123 not found. but got %s", err.Error())
 	}
 }
+
+func TestVerifyAnswerError(t *testing.T) {
+	mockDB := test.SetupMockDb()
+	mockDB.Error = errors.New("test_error")
+
+	createTestAnswer(testAnswer1)
+	_, err := VerifyAnswer(testAnswer1.ChallengeID, testAnswer1.Value)
+	if err == nil {
+		t.Errorf("expected error but got nil")
+		return
+	}
+
+	if !apperrors.IsDatabaseError(err) {
+		t.Errorf("expected database error but got %s", err.Error())
+	}
+	if err.Error() != "test_error" {
+		t.Errorf("expected test_error but got %s", err.Error())
+	}
+}
