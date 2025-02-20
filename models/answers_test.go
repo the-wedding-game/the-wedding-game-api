@@ -5,6 +5,7 @@ import (
 	"testing"
 	test "the-wedding-game-api/_test"
 	"the-wedding-game-api/db"
+	apperrors "the-wedding-game-api/errors"
 )
 
 var (
@@ -74,6 +75,9 @@ func TestAnswerSaveNegative(t *testing.T) {
 		return
 	}
 
+	if !apperrors.IsDatabaseError(err) {
+		t.Errorf("expected true but got false")
+	}
 	if err.Error() != "test_error" {
 		t.Errorf("expected test_error but got %s", err.Error())
 	}
@@ -118,7 +122,10 @@ func TestVerifyAnswerNotFound(t *testing.T) {
 		return
 	}
 
-	if err.Error() != "record not found: *models.Answer" {
-		t.Errorf("expected record not found: *models.Answer but got %s", err.Error())
+	if !apperrors.IsNotFoundError(err) {
+		t.Errorf("expected not found error but got %s", err.Error())
+	}
+	if err.Error() != "Challenge with key 123 not found." {
+		t.Errorf("expected Challenge with key 123 not found. but got %s", err.Error())
 	}
 }

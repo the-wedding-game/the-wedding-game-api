@@ -5,6 +5,7 @@ import (
 	"testing"
 	test "the-wedding-game-api/_test"
 	"the-wedding-game-api/db"
+	apperrors "the-wedding-game-api/errors"
 	"the-wedding-game-api/types"
 )
 
@@ -56,14 +57,11 @@ func TestDoesUserExistNotFound(t *testing.T) {
 	test.SetupMockDb()
 
 	exists, _, err := DoesUserExist(testUserAdmin.Username)
-	if err == nil {
-		t.Errorf("expected error but got nil")
+	if err != nil {
+		t.Errorf("expected nil but got %s", err.Error())
 		return
 	}
 
-	if err.Error() != "record not found: *models.User" {
-		t.Errorf("expected record not found: *models.User but got %s", err.Error())
-	}
 	if exists {
 		t.Errorf("expected false but got true")
 	}
@@ -80,6 +78,9 @@ func TestDoesUserExistError(t *testing.T) {
 		return
 	}
 
+	if !apperrors.IsDatabaseError(err) {
+		t.Errorf("expected true but got false")
+	}
 	if err.Error() != "test_error" {
 		t.Errorf("expected test_error but got %s", err.Error())
 	}
@@ -131,6 +132,9 @@ func TestUserSaveError(t *testing.T) {
 		return
 	}
 
+	if !apperrors.IsDatabaseError(err) {
+		t.Errorf("expected true but got false")
+	}
 	if err.Error() != "test_error" {
 		t.Errorf("expected test_error but got %s", err.Error())
 	}

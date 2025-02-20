@@ -6,6 +6,7 @@ import (
 	_ "github.com/lib/pq"
 	"log"
 	"os"
+	apperrors "the-wedding-game-api/errors"
 )
 
 type database struct {
@@ -33,7 +34,16 @@ func (p *database) Find(dest interface{}, where ...interface{}) DatabaseInterfac
 }
 
 func (p *database) GetError() error {
-	return p.db.Error
+	err := p.db.Error
+	if err == nil {
+		return nil
+	}
+
+	if gorm.IsRecordNotFoundError(err) {
+		return apperrors.NewRecordNotFoundError(err.Error())
+	}
+
+	return apperrors.NewDatabaseError(err.Error())
 }
 
 func newDatabase() DatabaseInterface {

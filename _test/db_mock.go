@@ -3,7 +3,9 @@ package test
 import (
 	"errors"
 	"reflect"
+	"strings"
 	"the-wedding-game-api/db"
+	apperrors "the-wedding-game-api/errors"
 )
 
 type MockDB struct {
@@ -70,5 +72,13 @@ func (m *MockDB) Find(dest interface{}, _ ...interface{}) db.DatabaseInterface {
 }
 
 func (m *MockDB) GetError() error {
-	return m.Error
+	if m.Error == nil {
+		return nil
+	}
+
+	if strings.Contains(m.Error.Error(), "record not found") {
+		return apperrors.NewRecordNotFoundError(m.Error.Error())
+	}
+
+	return apperrors.NewDatabaseError(m.Error.Error())
 }
