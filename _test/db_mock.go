@@ -1,9 +1,9 @@
 package test
 
 import (
-	"errors"
 	"reflect"
 	"the-wedding-game-api/db"
+	apperrors "the-wedding-game-api/errors"
 )
 
 type MockDB struct {
@@ -18,13 +18,13 @@ func (m *MockDB) Where(_ interface{}, _ ...interface{}) db.DatabaseInterface {
 func (m *MockDB) First(dest interface{}, _ ...interface{}) db.DatabaseInterface {
 	if len(m.items) == 0 {
 		destValue := reflect.ValueOf(dest)
-		m.Error = errors.New("record not found: " + destValue.Type().String())
+		m.Error = apperrors.NewRecordNotFoundError("record not found: " + destValue.Type().String())
 		return m
 	}
 
 	destValue := reflect.ValueOf(dest)
 	if destValue.Kind() != reflect.Ptr || destValue.IsNil() {
-		m.Error = errors.New("dest must be a non-nil pointer")
+		m.Error = apperrors.NewDatabaseError("dest must be a non-nil pointer")
 		return m
 	}
 
@@ -46,12 +46,12 @@ func (m *MockDB) Create(value interface{}) db.DatabaseInterface {
 func (m *MockDB) Find(dest interface{}, _ ...interface{}) db.DatabaseInterface {
 	destValue := reflect.ValueOf(dest)
 	if destValue.Kind() != reflect.Ptr || destValue.IsNil() {
-		m.Error = errors.New("dest must be a non-nil pointer")
+		m.Error = apperrors.NewDatabaseError("dest must be a non-nil pointer")
 		return m
 	}
 
 	if destValue.Elem().Kind() != reflect.Slice {
-		m.Error = errors.New("dest must be a pointer to a slice")
+		m.Error = apperrors.NewDatabaseError("dest must be a pointer to a slice")
 		return m
 	}
 
