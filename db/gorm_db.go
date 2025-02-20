@@ -19,7 +19,7 @@ func (p *database) Where(query interface{}, args ...interface{}) DatabaseInterfa
 }
 
 func (p *database) First(dest interface{}, where ...interface{}) DatabaseInterface {
-	p.db = p.db.First(dest, where...)
+	p.db = p.db.Limit(1).First(dest, where...)
 	return p
 }
 
@@ -38,6 +38,7 @@ func (p *database) GetError() error {
 	if err == nil {
 		return nil
 	}
+	p.db.Error = nil
 
 	if gorm.IsRecordNotFoundError(err) {
 		return apperrors.NewRecordNotFoundError(err.Error())

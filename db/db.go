@@ -18,4 +18,8 @@ func getConnection() DatabaseInterface {
 	return databaseConnection
 }
 
+func ResetConnection() {
+	databaseConnection = nil
+}
+
 var GetConnection = getConnection
