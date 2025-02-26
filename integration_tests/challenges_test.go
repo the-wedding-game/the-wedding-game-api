@@ -65,12 +65,12 @@ func deleteAllChallenges() {
 		os.Getenv("DB_PASS"),
 	)
 
-	db, err := gorm.Open(postgres.Open(dbURI))
+	database, err := gorm.Open(postgres.Open(dbURI))
 	if err != nil {
 		log.Fatalf("Error connecting to database: %v", err)
 	}
 
-	db.Delete(&models.Challenge{}, "1 = 1")
+	database.Delete(&models.Challenge{}, "1 = 1")
 }
 
 func TestGetChallengeByIdUploadPhoto(t *testing.T) {
