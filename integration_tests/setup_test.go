@@ -5,9 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	_ "github.com/joho/godotenv/autoload"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -101,6 +104,50 @@ func makeRequest(method string, path string, bodyObj interface{}) (int, string) 
 		panic(err)
 	}
 	req.Header.Set("Content-Type", "application/json")
+
+	resp := httptest.NewRecorder()
+	router.ServeHTTP(resp, req)
+
+	return resp.Code, resp.Body.String()
+}
+
+func makeRequestWithFile(method string, path string, fileKey string, filePath string, accessToken string) (int, string) {
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+
+	file, err := os.Open(filePath)
+	if err != nil {
+		panic(err)
+	}
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(file)
+
+	part, err := writer.CreateFormFile(fileKey, file.Name())
+	if err != nil {
+		panic(err)
+	}
+	_, err = io.Copy(part, file)
+	if err != nil {
+		panic(err)
+	}
+
+	err = writer.Close()
+	if err != nil {
+		panic(err)
+	}
+
+	req, err := http.NewRequest(method, path, body)
+	if err != nil {
+		panic(err)
+	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	if accessToken != "" {
+		req.Header.Set("Authorization", "Bearer "+accessToken)
+	}
 
 	resp := httptest.NewRecorder()
 	router.ServeHTTP(resp, req)
