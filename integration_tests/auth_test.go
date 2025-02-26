@@ -3,46 +3,13 @@ package integrationtests
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 	"the-wedding-game-api/db"
 	"the-wedding-game-api/models"
-	"the-wedding-game-api/routes"
 	"the-wedding-game-api/types"
 )
-
-var router *gin.Engine
-
-func TestMain(m *testing.M) {
-	Setup()
-	router = routes.GetRouter()
-
-	code := m.Run()
-
-	TearDown()
-	os.Exit(code)
-}
-
-func makeRequest(method string, path string, bodyObj interface{}) (int, string) {
-	body, err := json.Marshal(bodyObj)
-	if err != nil {
-		panic(err)
-	}
-
-	req, err := http.NewRequest(method, path, bytes.NewBuffer(body))
-	if err != nil {
-		panic(err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	resp := httptest.NewRecorder()
-	router.ServeHTTP(resp, req)
-
-	return resp.Code, resp.Body.String()
-}
 
 func TestLogin(t *testing.T) {
 	db.ResetConnection()
@@ -53,6 +20,7 @@ func TestLogin(t *testing.T) {
 	}
 	_, err := user.Save()
 	if err != nil {
+		t.Errorf("Error creating user")
 		return
 	}
 
@@ -227,5 +195,116 @@ func TestLoginWithNonexistentUser(t *testing.T) {
 	}
 	if len(loginResponse.AccessToken) != 36 {
 		t.Errorf("Expected access token to be a UUID")
+	}
+}
+
+func TestGetCurrentUser(t *testing.T) {
+	db.ResetConnection()
+
+	user := models.User{
+		Username: "test_user_for_get_current_user",
+		Role:     types.Player,
+	}
+	user, err := user.Save()
+	if err != nil {
+		t.Errorf("Error creating user")
+		return
+	}
+
+	accessToken, err := models.LinkAccessTokenToUser(user.ID)
+	if err != nil {
+		t.Errorf("Error creating access token")
+		return
+	}
+
+	req, err := http.NewRequest("GET", "/auth/current-user", nil)
+	if err != nil {
+		t.Errorf("Error creating request")
+		return
+	}
+	req.Header.Set("Authorization", "Bearer "+accessToken.Token)
+
+	resp := httptest.NewRecorder()
+	router.ServeHTTP(resp, req)
+
+	if resp.Code != http.StatusOK {
+		t.Errorf("Expected status code 200, got %v", resp.Code)
+	}
+
+	var userResponse types.UserResponse
+	decoder := json.NewDecoder(resp.Body)
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&userResponse); err != nil {
+		t.Errorf("Error unmarshalling response: %v", err)
+		return
+	}
+
+	if userResponse.Username != "test_user_for_get_current_user" {
+		t.Errorf("Expected username test_user_for_get_current_user, got %v", userResponse.Username)
+	}
+	if userResponse.Role != types.Player {
+		t.Errorf("Expected role PLAYER, got %v", userResponse.Role)
+	}
+}
+
+func TestGetCurrentUserWithMissingAccessToken(t *testing.T) {
+	req, err := http.NewRequest("GET", "/auth/current-user", nil)
+	if err != nil {
+		t.Errorf("Error creating request")
+		return
+	}
+
+	resp := httptest.NewRecorder()
+	router.ServeHTTP(resp, req)
+
+	if resp.Code != http.StatusForbidden {
+		t.Errorf("Expected status code 403, got %v", resp.Code)
+	}
+
+	expectedBody := `{"message":"access denied","status":"error"}`
+	if resp.Body.String() != expectedBody {
+		t.Errorf("Expected body %v, got %v", expectedBody, resp.Body.String())
+	}
+}
+
+func TestGetCurrentUserWithNonExistentAccessToken(t *testing.T) {
+	req, err := http.NewRequest("GET", "/auth/current-user", nil)
+	if err != nil {
+		t.Errorf("Error creating request")
+		return
+	}
+	req.Header.Set("Authorization", "Bearer invalid_token")
+
+	resp := httptest.NewRecorder()
+	router.ServeHTTP(resp, req)
+
+	if resp.Code != http.StatusForbidden {
+		t.Errorf("Expected status code 403, got %v", resp.Code)
+	}
+
+	expectedBody := `{"message":"access denied","status":"error"}`
+	if resp.Body.String() != expectedBody {
+		t.Errorf("Expected body %v, got %v", expectedBody, resp.Body.String())
+	}
+}
+
+func TestGetCurrentUserWithInvalidAccessToken(t *testing.T) {
+	req, err := http.NewRequest("GET", "/auth/current-user", nil)
+	if err != nil {
+		t.Errorf("Error creating request")
+		return
+	}
+	req.Header.Set("Authorization", "invalid_token")
+
+	resp := httptest.NewRecorder()
+	router.ServeHTTP(resp, req)
+
+	if resp.Code != http.StatusForbidden {
+		t.Errorf("Expected status code 403, got %v", resp.Code)
+	}
+
+	expectedBody := `{"message":"access denied","status":"error"}`
+	if resp.Body.String() != expectedBody {
+		t.Errorf("Expected body %v, got %v", expectedBody, resp.Body.String())
 	}
 }

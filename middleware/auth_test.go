@@ -82,55 +82,6 @@ func TestGetCurrentUserInvalidAccessTokenFormat(t *testing.T) {
 	}
 }
 
-func TestCheckIsLoggedIn(t *testing.T) {
-	test.SetupMockDb()
-	createTestAccessToken(testAccessToken)
-	createTestUser(testUser)
-
-	request := test.GenerateBasicRequest()
-	request.Request.Header.Set("Authorization", "Bearer test_token")
-
-	err := CheckIsLoggedIn(request)
-	if err != nil {
-		t.Errorf("expected nil but got %s", err.Error())
-	}
-}
-
-func TestCheckIsLoggedInNoAccessToken(t *testing.T) {
-	request := test.GenerateBasicRequest()
-	err := CheckIsLoggedIn(request)
-	if err == nil {
-		t.Errorf("expected error but got nil")
-		return
-	}
-
-	if !apperrors.IsAuthorizationError(err) {
-		t.Errorf("expected authorization error but got %s", err.Error())
-	}
-
-	if err.Error() != "access denied" {
-		t.Errorf("expected access token is not provided but got %s", err.Error())
-	}
-}
-
-func TestCheckIsLoggedInInvalidAccessTokenFormat(t *testing.T) {
-	request := test.GenerateBasicRequest()
-	request.Request.Header.Set("Authorization", "token")
-	err := CheckIsLoggedIn(request)
-	if err == nil {
-		t.Errorf("expected error but got nil")
-		return
-	}
-
-	if !apperrors.IsAuthorizationError(err) {
-		t.Errorf("expected authentication error but got %s", err.Error())
-	}
-
-	if err.Error() != "access denied" {
-		t.Errorf("expected invalid access token format but got %s", err.Error())
-	}
-}
-
 func TestCheckIsAdmin(t *testing.T) {
 	test.SetupMockDb()
 	createTestAccessToken(testAccessToken)

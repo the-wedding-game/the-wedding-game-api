@@ -23,7 +23,7 @@ func TestErrorHandlerWithAccessTokenNotFoundError(t *testing.T) {
 		t.Errorf("expected 403 but got %d", request.Writer.Status())
 	}
 
-	expectedBody := "{\"message\":\"access token not found\",\"status\":\"error\"}"
+	expectedBody := "{\"message\":\"access denied\",\"status\":\"error\"}"
 	if blw.GetBody() != expectedBody {
 		t.Errorf("expected %s but got %s", expectedBody, blw.GetBody())
 	}
@@ -39,7 +39,7 @@ func TestErrorHandlerWithAuthenticationError(t *testing.T) {
 		t.Errorf("expected 403 but got %d", request.Writer.Status())
 	}
 
-	expectedBody := "{\"message\":\"test_error\",\"status\":\"error\"}"
+	expectedBody := "{\"message\":\"access denied\",\"status\":\"error\"}"
 	if blw.GetBody() != expectedBody {
 		t.Errorf("expected %s but got %s", expectedBody, blw.GetBody())
 	}

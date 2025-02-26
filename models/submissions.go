@@ -1,23 +1,23 @@
 package models
 
 import (
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"the-wedding-game-api/db"
 	apperrors "the-wedding-game-api/errors"
 )
 
 type Submission struct {
 	gorm.Model
-	UserId      uint      `gorm:"not null;uniqueIndex:idx_user_challenge"`
-	ChallengeID uint      `gorm:"not null;uniqueIndex:idx_user_challenge"`
-	Answer      string    `gorm:"not null"`
-	User        User      `gorm:"foreignKey:UserId"`
-	Challenge   Challenge `gorm:"foreignKey:ChallengeID"`
+	UserID      uint   `gorm:"not null;uniqueIndex:idx_user_challenge"`
+	ChallengeID uint   `gorm:"not null;uniqueIndex:idx_user_challenge"`
+	Answer      string `gorm:"not null"`
+	User        User
+	Challenge   Challenge
 }
 
 func NewSubmission(userId uint, challengeId uint, answer string) Submission {
 	submission := Submission{
-		UserId:      userId,
+		UserID:      userId,
 		ChallengeID: challengeId,
 		Answer:      answer,
 	}

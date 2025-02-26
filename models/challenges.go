@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"strconv"
 	"the-wedding-game-api/db"
 	apperrors "the-wedding-game-api/errors"

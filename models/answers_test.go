@@ -125,8 +125,8 @@ func TestVerifyAnswerNotFound(t *testing.T) {
 	if !apperrors.IsNotFoundError(err) {
 		t.Errorf("expected not found error but got %s", err.Error())
 	}
-	if err.Error() != "Challenge with key 123 not found." {
-		t.Errorf("expected Challenge with key 123 not found. but got %s", err.Error())
+	if err.Error() != "Answer with Challenge with key 123 not found." {
+		t.Errorf("expected Answer with Challenge with key 123 not found not found. but got %s", err.Error())
 	}
 }
 

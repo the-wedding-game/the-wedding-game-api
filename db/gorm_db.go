@@ -1,16 +1,19 @@
 package db
 
 import (
+	"errors"
 	"fmt"
-	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 	"log"
 	"os"
 	apperrors "the-wedding-game-api/errors"
 )
 
 type database struct {
-	db *gorm.DB
+	db                *gorm.DB
+	initialConnection *gorm.DB
 }
 
 func (p *database) Where(query interface{}, args ...interface{}) DatabaseInterface {
@@ -20,16 +23,22 @@ func (p *database) Where(query interface{}, args ...interface{}) DatabaseInterfa
 
 func (p *database) First(dest interface{}, where ...interface{}) DatabaseInterface {
 	p.db = p.db.Limit(1).First(dest, where...)
+	p.initialConnection.Error = p.db.Error
+	p.db = p.initialConnection
 	return p
 }
 
 func (p *database) Create(value interface{}) DatabaseInterface {
 	p.db = p.db.Create(value)
+	p.initialConnection.Error = p.db.Error
+	p.db = p.initialConnection
 	return p
 }
 
 func (p *database) Find(dest interface{}, where ...interface{}) DatabaseInterface {
 	p.db = p.db.Find(dest, where...)
+	p.initialConnection.Error = p.db.Error
+	p.db = p.initialConnection
 	return p
 }
 
@@ -40,7 +49,7 @@ func (p *database) GetError() error {
 	}
 	p.db.Error = nil
 
-	if gorm.IsRecordNotFoundError(err) {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return apperrors.NewRecordNotFoundError(err.Error())
 	}
 
@@ -56,11 +65,14 @@ func newDatabase() DatabaseInterface {
 		os.Getenv("DB_PASS"),
 	)
 
-	db, err := gorm.Open("postgres", dbURI)
+	db, err := gorm.Open(postgres.Open(dbURI), &gorm.Config{})
 	if err != nil {
 		log.Printf("Error connecting to database: %v\n", err)
 		log.Fatal("Could not connect database")
 	}
 
-	return &database{db: db}
+	return &database{
+		db:                db,
+		initialConnection: db,
+	}
 }
