@@ -59,6 +59,9 @@ func GetCurrentUser(c *gin.Context) {
 		return
 	}
 
-	c.IndentedJSON(http.StatusOK, user)
+	c.IndentedJSON(http.StatusOK, types.UserResponse{
+		Username: user.Username,
+		Role:     user.Role,
+	})
 	return
 }

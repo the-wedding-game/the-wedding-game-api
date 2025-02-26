@@ -16,7 +16,7 @@ func Setup() {
 }
 
 func TearDown() {
-	dockerComposeDown()
+	//dockerComposeDown()
 }
 
 func dockerComposeUp() {

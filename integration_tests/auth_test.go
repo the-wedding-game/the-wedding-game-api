@@ -229,3 +229,114 @@ func TestLoginWithNonexistentUser(t *testing.T) {
 		t.Errorf("Expected access token to be a UUID")
 	}
 }
+
+func TestGetCurrentUser(t *testing.T) {
+	db.ResetConnection()
+
+	user := models.User{
+		Username: "test_user_for_get_current_user",
+		Role:     types.Player,
+	}
+	user, err := user.Save()
+	if err != nil {
+		t.Errorf("Error creating user")
+		return
+	}
+
+	accessToken, err := models.LinkAccessTokenToUser(user.ID)
+	if err != nil {
+		t.Errorf("Error creating access token")
+		return
+	}
+
+	req, err := http.NewRequest("GET", "/auth/current-user", nil)
+	if err != nil {
+		t.Errorf("Error creating request")
+		return
+	}
+	req.Header.Set("Authorization", "Bearer "+accessToken.Token)
+
+	resp := httptest.NewRecorder()
+	router.ServeHTTP(resp, req)
+
+	if resp.Code != http.StatusOK {
+		t.Errorf("Expected status code 200, got %v", resp.Code)
+	}
+
+	var userResponse types.UserResponse
+	decoder := json.NewDecoder(resp.Body)
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&userResponse); err != nil {
+		t.Errorf("Error unmarshalling response: %v", err)
+		return
+	}
+
+	if userResponse.Username != "test_user_for_get_current_user" {
+		t.Errorf("Expected username test_user_for_get_current_user, got %v", userResponse.Username)
+	}
+	if userResponse.Role != types.Player {
+		t.Errorf("Expected role PLAYER, got %v", userResponse.Role)
+	}
+}
+
+func TestGetCurrentUserWithMissingAccessToken(t *testing.T) {
+	req, err := http.NewRequest("GET", "/auth/current-user", nil)
+	if err != nil {
+		t.Errorf("Error creating request")
+		return
+	}
+
+	resp := httptest.NewRecorder()
+	router.ServeHTTP(resp, req)
+
+	if resp.Code != http.StatusForbidden {
+		t.Errorf("Expected status code 403, got %v", resp.Code)
+	}
+
+	expectedBody := `{"message":"access token is not provided","status":"error"}`
+	if resp.Body.String() != expectedBody {
+		t.Errorf("Expected body %v, got %v", expectedBody, resp.Body.String())
+	}
+}
+
+func TestGetCurrentUserWithNonExistentAccessToken(t *testing.T) {
+	req, err := http.NewRequest("GET", "/auth/current-user", nil)
+	if err != nil {
+		t.Errorf("Error creating request")
+		return
+	}
+	req.Header.Set("Authorization", "Bearer invalid_token")
+
+	resp := httptest.NewRecorder()
+	router.ServeHTTP(resp, req)
+
+	if resp.Code != http.StatusForbidden {
+		t.Errorf("Expected status code 403, got %v", resp.Code)
+	}
+
+	expectedBody := `{"message":"access token not found","status":"error"}`
+	if resp.Body.String() != expectedBody {
+		t.Errorf("Expected body %v, got %v", expectedBody, resp.Body.String())
+	}
+}
+
+func TestGetCurrentUserWithInvalidAccessToken(t *testing.T) {
+	req, err := http.NewRequest("GET", "/auth/current-user", nil)
+	if err != nil {
+		t.Errorf("Error creating request")
+		return
+	}
+	req.Header.Set("Authorization", "invalid_token")
+
+	resp := httptest.NewRecorder()
+	router.ServeHTTP(resp, req)
+
+	if resp.Code != http.StatusForbidden {
+		t.Errorf("Expected status code 403, got %v", resp.Code)
+	}
+
+	expectedBody := `{"message":"invalid access token format","status":"error"}`
+	if resp.Body.String() != expectedBody {
+		t.Errorf("Expected body %v, got %v", expectedBody, resp.Body.String())
+	}
+}
