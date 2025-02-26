@@ -2,7 +2,7 @@ package models
 
 import (
 	"github.com/google/uuid"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"strconv"
 	"the-wedding-game-api/db"
 	apperrors "the-wedding-game-api/errors"
@@ -14,6 +14,7 @@ type AccessToken struct {
 	Token     string `gorm:"unique"`
 	UserID    uint   `gorm:"not null"`
 	ExpiresOn int64  `gorm:"not null"`
+	User      User
 }
 
 func generateAccessToken() string {

@@ -3,46 +3,13 @@ package integrationtests
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 	"the-wedding-game-api/db"
 	"the-wedding-game-api/models"
-	"the-wedding-game-api/routes"
 	"the-wedding-game-api/types"
 )
-
-var router *gin.Engine
-
-func TestMain(m *testing.M) {
-	Setup()
-	router = routes.GetRouter()
-
-	code := m.Run()
-
-	TearDown()
-	os.Exit(code)
-}
-
-func makeRequest(method string, path string, bodyObj interface{}) (int, string) {
-	body, err := json.Marshal(bodyObj)
-	if err != nil {
-		panic(err)
-	}
-
-	req, err := http.NewRequest(method, path, bytes.NewBuffer(body))
-	if err != nil {
-		panic(err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	resp := httptest.NewRecorder()
-	router.ServeHTTP(resp, req)
-
-	return resp.Code, resp.Body.String()
-}
 
 func TestLogin(t *testing.T) {
 	db.ResetConnection()
@@ -53,6 +20,7 @@ func TestLogin(t *testing.T) {
 	}
 	_, err := user.Save()
 	if err != nil {
+		t.Errorf("Error creating user")
 		return
 	}
 
@@ -293,7 +261,7 @@ func TestGetCurrentUserWithMissingAccessToken(t *testing.T) {
 		t.Errorf("Expected status code 403, got %v", resp.Code)
 	}
 
-	expectedBody := `{"message":"access token is not provided","status":"error"}`
+	expectedBody := `{"message":"access denied","status":"error"}`
 	if resp.Body.String() != expectedBody {
 		t.Errorf("Expected body %v, got %v", expectedBody, resp.Body.String())
 	}
@@ -314,7 +282,7 @@ func TestGetCurrentUserWithNonExistentAccessToken(t *testing.T) {
 		t.Errorf("Expected status code 403, got %v", resp.Code)
 	}
 
-	expectedBody := `{"message":"access token not found","status":"error"}`
+	expectedBody := `{"message":"access denied","status":"error"}`
 	if resp.Body.String() != expectedBody {
 		t.Errorf("Expected body %v, got %v", expectedBody, resp.Body.String())
 	}
@@ -335,7 +303,7 @@ func TestGetCurrentUserWithInvalidAccessToken(t *testing.T) {
 		t.Errorf("Expected status code 403, got %v", resp.Code)
 	}
 
-	expectedBody := `{"message":"invalid access token format","status":"error"}`
+	expectedBody := `{"message":"access denied","status":"error"}`
 	if resp.Body.String() != expectedBody {
 		t.Errorf("Expected body %v, got %v", expectedBody, resp.Body.String())
 	}

@@ -1,9 +1,11 @@
 package db
 
 import (
+	"errors"
 	"fmt"
-	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 	"log"
 	"os"
 	apperrors "the-wedding-game-api/errors"
@@ -47,7 +49,7 @@ func (p *database) GetError() error {
 	}
 	p.db.Error = nil
 
-	if gorm.IsRecordNotFoundError(err) {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return apperrors.NewRecordNotFoundError(err.Error())
 	}
 
@@ -63,7 +65,7 @@ func newDatabase() DatabaseInterface {
 		os.Getenv("DB_PASS"),
 	)
 
-	db, err := gorm.Open("postgres", dbURI)
+	db, err := gorm.Open(postgres.Open(dbURI), &gorm.Config{})
 	if err != nil {
 		log.Printf("Error connecting to database: %v\n", err)
 		log.Fatal("Could not connect database")

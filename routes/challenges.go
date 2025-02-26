@@ -11,7 +11,8 @@ import (
 )
 
 func GetChallengeById(c *gin.Context) {
-	if err := middleware.CheckIsLoggedIn(c); err != nil {
+	user, err := middleware.GetCurrentUser(c)
+	if err != nil {
 		_ = c.Error(err)
 		return
 	}
@@ -23,12 +24,6 @@ func GetChallengeById(c *gin.Context) {
 	}
 
 	challenge, err := models.GetChallengeByID(id)
-	if err != nil {
-		_ = c.Error(err)
-		return
-	}
-
-	user, err := middleware.GetCurrentUser(c)
 	if err != nil {
 		_ = c.Error(err)
 		return
@@ -87,18 +82,13 @@ func CreateChallenge(c *gin.Context) {
 }
 
 func GetAllChallenges(c *gin.Context) {
-	if err := middleware.CheckIsLoggedIn(c); err != nil {
-		_ = c.Error(err)
-		return
-	}
-
-	challengesArr, err := models.GetAllChallenges()
+	user, err := middleware.GetCurrentUser(c)
 	if err != nil {
 		_ = c.Error(err)
 		return
 	}
 
-	user, err := middleware.GetCurrentUser(c)
+	challengesArr, err := models.GetAllChallenges()
 	if err != nil {
 		_ = c.Error(err)
 		return
@@ -111,6 +101,7 @@ func GetAllChallenges(c *gin.Context) {
 	}
 
 	var response types.GetChallengesResponse
+	response.Challenges = make([]types.GetChallengeResponse, 0)
 	for _, challenge := range challengesArr {
 		isCompleted := utils.IsChallengeInSubmissions(challenge.ID, submissions)
 
@@ -131,7 +122,8 @@ func GetAllChallenges(c *gin.Context) {
 }
 
 func VerifyAnswer(c *gin.Context) {
-	if err := middleware.CheckIsLoggedIn(c); err != nil {
+	user, err := middleware.GetCurrentUser(c)
+	if err != nil {
 		_ = c.Error(err)
 		return
 	}
@@ -154,17 +146,19 @@ func VerifyAnswer(c *gin.Context) {
 		return
 	}
 
-	user, err := middleware.GetCurrentUser(c)
+	isAlreadyCompleted, err := models.IsChallengeCompleted(user.ID, challengeId)
 	if err != nil {
 		_ = c.Error(err)
 		return
 	}
 
-	submission := models.NewSubmission(user.ID, challengeId, verifyAnswerRequest.Answer)
-	_, err = submission.Save()
-	if err != nil {
-		_ = c.Error(err)
-		return
+	if !isAlreadyCompleted {
+		submission := models.NewSubmission(user.ID, challengeId, verifyAnswerRequest.Answer)
+		_, err = submission.Save()
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
 	}
 
 	response := types.VerifyAnswerResponse{Correct: true}

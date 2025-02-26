@@ -19,7 +19,7 @@ func ErrorHandler(c *gin.Context) {
 			apperrors.IsAuthorizationError(err.Err) {
 			c.JSON(http.StatusForbidden, gin.H{
 				"status":  "error",
-				"message": err.Err.Error(),
+				"message": "access denied",
 			})
 			c.Abort()
 			return

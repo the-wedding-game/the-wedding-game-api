@@ -21,14 +21,6 @@ func GetCurrentUser(c *gin.Context) (models.User, error) {
 	return models.GetUserByAccessToken(accessToken)
 }
 
-func CheckIsLoggedIn(c *gin.Context) error {
-	_, err := GetCurrentUser(c)
-	if err != nil {
-		return apperrors.NewAuthorizationError()
-	}
-	return nil
-}
-
 func CheckIsAdmin(c *gin.Context) error {
 	user, err := GetCurrentUser(c)
 	if err != nil || user.Role != types.Admin {

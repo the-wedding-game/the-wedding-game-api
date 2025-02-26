@@ -1,7 +1,7 @@
 package models
 
 import (
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"strconv"
 	"the-wedding-game-api/db"
 	apperrors "the-wedding-game-api/errors"
@@ -9,9 +9,9 @@ import (
 
 type Answer struct {
 	gorm.Model
-	ChallengeID uint      `gorm:"not null"`
-	Value       string    `gorm:"not null"`
-	Challenge   Challenge `gorm:"foreignKey:ChallengeID"`
+	ChallengeID uint   `gorm:"not null;unique"`
+	Value       string `gorm:"not null"`
+	Challenge   Challenge
 }
 
 func NewAnswer(challengeId uint, value string) Answer {
@@ -37,7 +37,7 @@ func VerifyAnswer(challengeId uint, answer string) (bool, error) {
 	err := conn.Where("challenge_id = ?", challengeId).First(&answerModel).GetError()
 	if err != nil {
 		if apperrors.IsRecordNotFoundError(err) {
-			return false, apperrors.NewNotFoundError("Challenge", strconv.Itoa(int(challengeId)))
+			return false, apperrors.NewNotFoundError("Answer with Challenge", strconv.Itoa(int(challengeId)))
 		}
 		return false, err
 	}

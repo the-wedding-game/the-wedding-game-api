@@ -10,21 +10,21 @@ import (
 
 var (
 	testSubmission1 = Submission{
-		UserId:      132,
+		UserID:      132,
 		ChallengeID: 3245,
 		Answer:      "test_answer",
 	}
 	testSubmission2 = Submission{
-		UserId:      235,
+		UserID:      235,
 		ChallengeID: 9768,
 		Answer:      "test_answer2",
 	}
 )
 
 func TestNewSubmission(t *testing.T) {
-	submission := NewSubmission(testSubmission1.UserId, testSubmission1.ChallengeID, testSubmission1.Answer)
-	if submission.UserId != testSubmission1.UserId {
-		t.Errorf("expected %d but got %d", testSubmission1.UserId, submission.UserId)
+	submission := NewSubmission(testSubmission1.UserID, testSubmission1.ChallengeID, testSubmission1.Answer)
+	if submission.UserID != testSubmission1.UserID {
+		t.Errorf("expected %d but got %d", testSubmission1.UserID, submission.UserID)
 	}
 	if submission.ChallengeID != testSubmission1.ChallengeID {
 		t.Errorf("expected %d but got %d", testSubmission1.ChallengeID, submission.ChallengeID)
@@ -43,8 +43,8 @@ func TestSubmissionSave(t *testing.T) {
 		t.Errorf("expected nil but got %v", err)
 	}
 
-	if savedSubmission.UserId != testSubmission1.UserId {
-		t.Errorf("expected %d but got %d", testSubmission1.UserId, savedSubmission.UserId)
+	if savedSubmission.UserID != testSubmission1.UserID {
+		t.Errorf("expected %d but got %d", testSubmission1.UserID, savedSubmission.UserID)
 	}
 	if savedSubmission.ChallengeID != testSubmission1.ChallengeID {
 		t.Errorf("expected %d but got %d", testSubmission1.ChallengeID, savedSubmission.ChallengeID)
@@ -59,8 +59,8 @@ func TestSubmissionSave(t *testing.T) {
 		t.Errorf("expected nil but got %v", err)
 		return
 	}
-	if submissionFromDb.UserId != testSubmission1.UserId {
-		t.Errorf("expected %d but got %d", testSubmission1.UserId, submissionFromDb.UserId)
+	if submissionFromDb.UserID != testSubmission1.UserID {
+		t.Errorf("expected %d but got %d", testSubmission1.UserID, submissionFromDb.UserID)
 	}
 	if submissionFromDb.ChallengeID != testSubmission1.ChallengeID {
 		t.Errorf("expected %d but got %d", testSubmission1.ChallengeID, submissionFromDb.ChallengeID)
@@ -96,7 +96,7 @@ func TestIsChallengeCompleted(t *testing.T) {
 		t.Errorf("expected nil but got %v", err)
 	}
 
-	completed, err := IsChallengeCompleted(testSubmission1.UserId, testSubmission1.ChallengeID)
+	completed, err := IsChallengeCompleted(testSubmission1.UserID, testSubmission1.ChallengeID)
 	if err != nil {
 		t.Errorf("expected nil but got %v", err)
 	}
@@ -108,7 +108,7 @@ func TestIsChallengeCompleted(t *testing.T) {
 func TestIsChallengeCompletedNotFound(t *testing.T) {
 	test.SetupMockDb()
 
-	isCompleted, err := IsChallengeCompleted(testSubmission1.UserId, testSubmission1.ChallengeID)
+	isCompleted, err := IsChallengeCompleted(testSubmission1.UserID, testSubmission1.ChallengeID)
 	if err != nil {
 		t.Errorf("expected nil but got %v", err)
 		return
@@ -128,7 +128,7 @@ func TestIsChallengeCompletedError(t *testing.T) {
 
 	mockDb.Error = errors.New("test_error")
 
-	_, err = IsChallengeCompleted(testSubmission1.UserId, testSubmission1.ChallengeID)
+	_, err = IsChallengeCompleted(testSubmission1.UserID, testSubmission1.ChallengeID)
 	if err == nil {
 		t.Errorf("expected error but got nil")
 		return
@@ -154,15 +154,15 @@ func TestGetCompletedChallenges(t *testing.T) {
 		t.Errorf("expected nil but got %v", err)
 	}
 
-	submissions, err := GetCompletedChallenges(testSubmission1.UserId)
+	submissions, err := GetCompletedChallenges(testSubmission1.UserID)
 	if err != nil {
 		t.Errorf("expected nil but got %v", err)
 	}
 	if len(submissions) != 2 {
 		t.Errorf("expected 1 but got %d", len(submissions))
 	}
-	if submissions[0].UserId != testSubmission1.UserId {
-		t.Errorf("expected %d but got %d", testSubmission1.UserId, submissions[0].UserId)
+	if submissions[0].UserID != testSubmission1.UserID {
+		t.Errorf("expected %d but got %d", testSubmission1.UserID, submissions[0].UserID)
 	}
 	if submissions[0].ChallengeID != testSubmission1.ChallengeID {
 		t.Errorf("expected %d but got %d", testSubmission1.ChallengeID, submissions[0].ChallengeID)
@@ -170,8 +170,8 @@ func TestGetCompletedChallenges(t *testing.T) {
 	if submissions[0].Answer != testSubmission1.Answer {
 		t.Errorf("expected %s but got %s", testSubmission1.Answer, submissions[0].Answer)
 	}
-	if submissions[1].UserId != testSubmission2.UserId {
-		t.Errorf("expected %d but got %d", testSubmission2.UserId, submissions[1].UserId)
+	if submissions[1].UserID != testSubmission2.UserID {
+		t.Errorf("expected %d but got %d", testSubmission2.UserID, submissions[1].UserID)
 	}
 	if submissions[1].ChallengeID != testSubmission2.ChallengeID {
 		t.Errorf("expected %d but got %d", testSubmission2.ChallengeID, submissions[1].ChallengeID)
@@ -196,7 +196,7 @@ func TestGetCompletedChallengesError(t *testing.T) {
 
 	mockDb.Error = errors.New("test_error")
 
-	_, err = GetCompletedChallenges(testSubmission1.UserId)
+	_, err = GetCompletedChallenges(testSubmission1.UserID)
 	if err == nil {
 		t.Errorf("expected error but got nil")
 		return
@@ -209,7 +209,7 @@ func TestGetCompletedChallengesError(t *testing.T) {
 func TestGetCompletedChallengesNotFound(t *testing.T) {
 	test.SetupMockDb()
 
-	submissions, err := GetCompletedChallenges(testSubmission1.UserId)
+	submissions, err := GetCompletedChallenges(testSubmission1.UserID)
 	if err != nil {
 		t.Errorf("expected error but got nil")
 		return
