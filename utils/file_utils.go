@@ -16,8 +16,11 @@ func generateRandomFileName(originalFileName string) (string, error) {
 		return "", err
 	}
 
-	fileExtension := strings.Split(originalFileName, ".")[1]
-	fileName := fmt.Sprintf("%s.%s", fileNameUUID.String(), fileExtension)
+	fileExtension := ""
+	if strings.Contains(originalFileName, ".") {
+		fileExtension = originalFileName[strings.LastIndex(originalFileName, ".")-1:]
+	}
+	fileName := fmt.Sprintf("%s%s", fileNameUUID.String(), fileExtension)
 
 	return fileName, nil
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"github.com/gin-gonic/gin"
 	"net/http/httptest"
+	"strings"
 	"the-wedding-game-api/db"
 )
 
@@ -42,4 +43,23 @@ func AttachBodyLogWriter(c *gin.Context) *BodyLogWriter {
 	blw := &BodyLogWriter{body: bytes.NewBufferString(""), ResponseWriter: c.Writer}
 	c.Writer = blw
 	return blw
+}
+
+func IsUUID(uuid string) bool {
+	if len(uuid) != 36 {
+		return false
+	}
+
+	if uuid[8] != '-' || uuid[13] != '-' || uuid[18] != '-' || uuid[23] != '-' {
+		return false
+	}
+
+	return true
+}
+
+func GetFileExtension(fileName string) string {
+	if !strings.Contains(fileName, ".") {
+		return ""
+	}
+	return fileName[strings.LastIndex(fileName, "."):]
 }
