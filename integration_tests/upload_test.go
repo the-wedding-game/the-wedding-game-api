@@ -93,7 +93,7 @@ func TestUploadImageWithoutFormFile(t *testing.T) {
 		return
 	}
 
-	statusCode, body := makeRequestWithoutFile("POST", "/upload", "image", accessToken.Token)
+	statusCode, body := makeRequestWithoutFile("POST", "/upload", accessToken.Token)
 	if statusCode != http.StatusBadRequest {
 		t.Errorf("Expected status code 400, got %v", statusCode)
 	}
