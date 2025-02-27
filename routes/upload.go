@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"the-wedding-game-api/middleware"
+	"the-wedding-game-api/middleware/validators"
 	"the-wedding-game-api/types"
 	"the-wedding-game-api/utils"
 )
@@ -15,7 +16,7 @@ func HandleImageUpload(c *gin.Context) {
 		return
 	}
 
-	file, err := c.FormFile("image")
+	file, err := validators.ValidateUploadImageRequest(c)
 	if err != nil {
 		_ = c.Error(err)
 		return
