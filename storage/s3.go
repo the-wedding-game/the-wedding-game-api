@@ -45,9 +45,6 @@ func (s *S3Storage) UploadFile(reader bytes.Reader, fileName string) (string, er
 
 func getS3Storage() (StorageInterface, error) {
 	region := os.Getenv("AWS_REGION")
-	if region == "" {
-		region = "us-east-1"
-	}
 
 	sess, err := getAwsSession()
 	if err != nil {
