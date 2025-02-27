@@ -20,7 +20,7 @@ func TestUploadImage(t *testing.T) {
 		return
 	}
 
-	statusCode, body := makeRequestWithFile("POST", "/upload", "image", "assets/test_upload_image.jpg", accessToken.Token)
+	statusCode, body := makeRequestWithFile("POST", "/upload", "image", "../_tests/assets/test_upload_image.jpg", accessToken.Token)
 	if statusCode != http.StatusOK {
 		t.Errorf("Expected status code 200, got %v", statusCode)
 		return
@@ -61,7 +61,7 @@ func TestUploadImageNotAdmin(t *testing.T) {
 		return
 	}
 
-	statusCode, body := makeRequestWithFile("POST", "/upload", "image", "assets/test_upload_image.jpg", accessToken.Token)
+	statusCode, body := makeRequestWithFile("POST", "/upload", "image", "../_tests/assets/test_upload_image.jpg", accessToken.Token)
 	if statusCode != http.StatusForbidden {
 		t.Errorf("Expected status code 403, got %v", statusCode)
 		return
@@ -74,7 +74,7 @@ func TestUploadImageNotAdmin(t *testing.T) {
 }
 
 func TestUploadImageNoToken(t *testing.T) {
-	statusCode, body := makeRequestWithFile("POST", "/upload", "image", "assets/test_upload_image.jpg", "")
+	statusCode, body := makeRequestWithFile("POST", "/upload", "image", "../_tests/assets/test_upload_image.jpg", "")
 	if statusCode != http.StatusForbidden {
 		t.Errorf("Expected status code 403, got %v", statusCode)
 		return
@@ -113,7 +113,7 @@ func TestUploadImageWithInvalidFormFile(t *testing.T) {
 		return
 	}
 
-	statusCode, body := makeRequestWithFile("POST", "/upload", "invalid", "assets/test_upload_image.jpg", accessToken.Token)
+	statusCode, body := makeRequestWithFile("POST", "/upload", "invalid", "../_tests/assets/test_upload_image.jpg", accessToken.Token)
 	if statusCode != http.StatusBadRequest {
 		t.Errorf("Expected status code 400, got %v", statusCode)
 	}
@@ -131,7 +131,7 @@ func TestUploadImageWithEmptyFile(t *testing.T) {
 		return
 	}
 
-	statusCode, body := makeRequestWithFile("POST", "/upload", "image", "assets/test_empty_image.jpg", accessToken.Token)
+	statusCode, body := makeRequestWithFile("POST", "/upload", "image", "../_tests/assets/test_empty_image.jpg", accessToken.Token)
 	if statusCode != http.StatusBadRequest {
 		t.Errorf("Expected status code 400, got %v", statusCode)
 	}
@@ -149,7 +149,7 @@ func TestUploadWithNonImageFile(t *testing.T) {
 		return
 	}
 
-	statusCode, body := makeRequestWithFile("POST", "/upload", "image", "assets/test_text.txt", accessToken.Token)
+	statusCode, body := makeRequestWithFile("POST", "/upload", "image", "../_tests/assets/test_text.txt", accessToken.Token)
 	if statusCode != http.StatusBadRequest {
 		t.Errorf("Expected status code 400, got %v", statusCode)
 	}
@@ -161,7 +161,7 @@ func TestUploadWithNonImageFile(t *testing.T) {
 }
 
 func TestUploadImageWithInvalidToken(t *testing.T) {
-	statusCode, body := makeRequestWithFile("POST", "/upload", "image", "assets/test_upload_image.jpg", "invalid")
+	statusCode, body := makeRequestWithFile("POST", "/upload", "image", "../_tests/assets/test_upload_image.jpg", "invalid")
 
 	fmt.Println(body)
 	if statusCode != http.StatusForbidden {
@@ -182,7 +182,7 @@ func TestUploadImageWithTooLargeFile(t *testing.T) {
 		return
 	}
 
-	statusCode, body := makeRequestWithFile("POST", "/upload", "image", "assets/test_large_image.jpg", accessToken.Token)
+	statusCode, body := makeRequestWithFile("POST", "/upload", "image", "../_tests/assets/test_large_image.jpg", accessToken.Token)
 	if statusCode != http.StatusBadRequest {
 		t.Errorf("Expected status code 400, got %v", statusCode)
 	}
