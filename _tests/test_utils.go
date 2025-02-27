@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"the-wedding-game-api/db"
+	"the-wedding-game-api/storage"
 )
 
 func SetupMockDb() *MockDB {
@@ -14,6 +15,14 @@ func SetupMockDb() *MockDB {
 		return mockDB
 	}
 	return mockDB
+}
+
+func SetupMockStorage() *MockStorage {
+	mockStorage := &MockStorage{}
+	storage.GetStorage = func() (storage.StorageInterface, error) {
+		return mockStorage, nil
+	}
+	return mockStorage
 }
 
 func GenerateBasicRequest() *gin.Context {

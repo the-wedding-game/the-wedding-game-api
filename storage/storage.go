@@ -12,7 +12,9 @@ type StorageInterface interface {
 	UploadFile(reader bytes.Reader, fileName string) (string, error)
 }
 
-func GetStorage() (StorageInterface, error) {
+var GetStorage = getStorage
+
+func getStorage() (StorageInterface, error) {
 	region := os.Getenv("AWS_REGION")
 
 	sess, err := session.NewSession(&aws.Config{
