@@ -12,16 +12,21 @@ import (
 )
 
 func getFileHeader(filepath string) (*multipart.FileHeader, error) {
-	file, err := os.Open("../_tests/assets/test.txt")
+	file, err := os.Open(filepath)
 	if err != nil {
 		return nil, fmt.Errorf("error while opening file: %w", err)
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			fmt.Println(fmt.Errorf("error while closing file: %w", err))
+		}
+	}(file)
 
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
-	formFile, err := writer.CreateFormFile("image", "../_tests/assets/test.txt")
+	formFile, err := writer.CreateFormFile("image", file.Name())
 	if err != nil {
 		return nil, fmt.Errorf("error while creating form file: %w", err)
 	}
@@ -191,7 +196,12 @@ func TestGetReader(t *testing.T) {
 		t.Errorf("Error while opening file")
 		return
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			fmt.Println(fmt.Errorf("error while closing file: %w", err))
+		}
+	}(file)
 
 	reader, err := getReader(file)
 	if err != nil {
