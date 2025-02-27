@@ -2,4 +2,3 @@
 /bin/
 /testing.http
 /tmp/
-/integration_tests/.env
