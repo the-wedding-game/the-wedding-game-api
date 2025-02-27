@@ -18,5 +18,7 @@ func GetRouter() *gin.Engine {
 	router.POST("/auth/login", Login)
 	router.GET("/auth/current-user", GetCurrentUser)
 
+	router.POST("/upload", HandleImageUpload)
+
 	return router
 }
