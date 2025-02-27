@@ -22,7 +22,7 @@ import (
 )
 
 func Setup() {
-	//dockerComposeUp()
+	dockerComposeUp()
 	setupTestDb()
 	waitForS3()
 }
@@ -194,7 +194,7 @@ func makeRequestWithFile(method string, path string, fileKey string, filePath st
 	return resp.Code, resp.Body.String()
 }
 
-func makeRequestWithoutFile(method string, path string, fileKey string, accessToken string) (int, string) {
+func makeRequestWithoutFile(method string, path string, accessToken string) (int, string) {
 	req, err := http.NewRequest(method, path, nil)
 	if err != nil {
 		panic(err)
