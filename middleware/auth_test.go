@@ -127,11 +127,11 @@ func TestCheckIsAdminNoAccessToken(t *testing.T) {
 		return
 	}
 
-	if !apperrors.IsAuthorizationError(err) {
+	if !apperrors.IsAuthenticationError(err) {
 		t.Errorf("expected authorization error but got %s", err.Error())
 	}
 
-	if err.Error() != "access denied" {
+	if err.Error() != "access token is not provided" {
 		t.Errorf("expected access token is not provided but got %s", err.Error())
 	}
 }
@@ -146,11 +146,11 @@ func TestCheckIsAdminInvalidAccessTokenFormat(t *testing.T) {
 		return
 	}
 
-	if !apperrors.IsAuthorizationError(err) {
+	if !apperrors.IsAuthenticationError(err) {
 		t.Errorf("expected authentication error but got %s", err.Error())
 	}
 
-	if err.Error() != "access denied" {
+	if err.Error() != "invalid access token format" {
 		t.Errorf("expected invalid access token format but got %s", err.Error())
 	}
 }
