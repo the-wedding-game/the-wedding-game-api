@@ -56,6 +56,7 @@ func TestIsURLStrictWithValidUrls(t *testing.T) {
 	assert.Equal(t, IsURLStrict("https://google.com/path/image.jpg"), true)
 	assert.Equal(t, IsURLStrict("https://google.net/path/image.jpg"), true)
 	assert.Equal(t, IsURLStrict("https://subdomain.google.net/path/image.jpg"), true)
+	assert.Equal(t, IsURLStrict("http://localhost:9445/the-wedding-game/testing-folder/d3d2df12-f5dc-11ef-a7f9-7acdc90419c1k.png"), true)
 }
 
 func TestIsURLStrictWithInvalidUrls(t *testing.T) {

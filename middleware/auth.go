@@ -23,7 +23,11 @@ func GetCurrentUser(c *gin.Context) (models.User, error) {
 
 func CheckIsAdmin(c *gin.Context) error {
 	user, err := GetCurrentUser(c)
-	if err != nil || user.Role != types.Admin {
+	if err != nil {
+		return err
+	}
+
+	if user.Role != types.Admin {
 		return apperrors.NewAuthorizationError()
 	}
 	return nil

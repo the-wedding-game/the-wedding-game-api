@@ -16,6 +16,13 @@ type database struct {
 	initialConnection *gorm.DB
 }
 
+func (p *database) GetSession() DatabaseInterface {
+	return &database{
+		db:                p.db.Session(&gorm.Session{}),
+		initialConnection: p.db.Session(&gorm.Session{}),
+	}
+}
+
 func (p *database) Where(query interface{}, args ...interface{}) DatabaseInterface {
 	p.db = p.db.Where(query, args...)
 	return p

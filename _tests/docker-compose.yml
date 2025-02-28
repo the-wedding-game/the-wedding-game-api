@@ -1,6 +1,6 @@
 services:
   db:
-    container_name: the-wedding-game-db
+    container_name: the-wedding-game-db-test
     image: postgres:alpine
     ports:
       - "5433:5432"
@@ -10,7 +10,7 @@ services:
       POSTGRES_DB: the-wedding-game
 
   s3-ninja:
-    container_name: the-wedding-game-s3ninja
+    container_name: the-wedding-game-s3ninja-test
     image: scireum/s3-ninja:latest
     ports:
       - "127.0.0.1:9444:9000"

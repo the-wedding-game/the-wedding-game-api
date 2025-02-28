@@ -40,14 +40,15 @@ func (s *S3Storage) UploadFile(reader bytes.Reader, fileName string) (string, er
 		return "", fmt.Errorf("error uploading file to s3: %w", err)
 	}
 
+	if os.Getenv("ENV") == "development" {
+		return fmt.Sprintf("http://localhost:9445/%s/%s/%s", RemoveLeadingSlash(s.bucketName), s.folderName, fileName), nil
+	}
+
 	return "https://" + RemoveLeadingSlash(s.bucketName) + ".s3." + s.region + ".amazonaws.com/" + s.folderName + "/" + fileName, nil
 }
 
 func getS3Storage() (StorageInterface, error) {
 	region := os.Getenv("AWS_REGION")
-	if region == "" {
-		region = "us-east-1"
-	}
 
 	sess, err := getAwsSession()
 	if err != nil {

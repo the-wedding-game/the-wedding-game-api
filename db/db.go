@@ -3,6 +3,7 @@ package db
 var databaseConnection DatabaseInterface
 
 type DatabaseInterface interface {
+	GetSession() DatabaseInterface
 	Where(query interface{}, args ...interface{}) DatabaseInterface
 	First(dest interface{}, where ...interface{}) DatabaseInterface
 	Create(value interface{}) DatabaseInterface
@@ -12,10 +13,10 @@ type DatabaseInterface interface {
 
 func getConnection() DatabaseInterface {
 	if databaseConnection != nil {
-		return databaseConnection
+		return databaseConnection.GetSession()
 	}
 	databaseConnection = newDatabase()
-	return databaseConnection
+	return databaseConnection.GetSession()
 }
 
 func ResetConnection() {

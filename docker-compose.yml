@@ -1,5 +1,6 @@
 services:
   db:
+    container_name: the-wedding-game-db
     image: postgres:alpine
     ports:
       - "5432:5432"
@@ -10,5 +11,14 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
+  s3-ninja:
+    container_name: the-wedding-game-s3ninja
+    image: scireum/s3-ninja:latest
+    ports:
+      - "127.0.0.1:9445:9000"
+    volumes:
+      - s3ninja-data:/home/sirius/data
+
 volumes:
   pgdata:
+  s3ninja-data:
