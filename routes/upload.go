@@ -10,7 +10,7 @@ import (
 )
 
 func HandleImageUpload(c *gin.Context) {
-	err := middleware.CheckIsAdmin(c)
+	_, err := middleware.GetCurrentUser(c)
 	if err != nil {
 		_ = c.Error(err)
 		return
