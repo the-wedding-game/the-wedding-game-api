@@ -3,6 +3,7 @@ package utils
 import (
 	"net/url"
 	"regexp"
+	"strings"
 	"the-wedding-game-api/models"
 )
 
@@ -25,6 +26,11 @@ func IsURLStrict(s string) bool {
 		return false
 	}
 
-	r := regexp.MustCompile(`^(?:http(s)?://)?[\w.-]+(?:\.[\w.-]+)+[\w\-._~:/?#[\]@!$&'()*+,;=]+$`)
+	if strings.Contains(u.Host, "localhost") {
+		r := regexp.MustCompile(`^(?:http(s)?://)?localhost(?::\d+)?(?:/[\w\-._~:/?#[\]@!$&'()*+,;=]*)?$`)
+		return r.MatchString(s)
+	}
+
+	r := regexp.MustCompile(`^(?:http(s)?://)?[\w.-]+(?:\.[\w.-]+)+(?::\d+)?(?:/[\w\-._~:/?#[\]@!$&'()*+,;=]*)?$`)
 	return r.MatchString(s)
 }
