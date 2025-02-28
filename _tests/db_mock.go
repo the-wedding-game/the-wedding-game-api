@@ -13,6 +13,10 @@ type MockDB struct {
 	Error error
 }
 
+func (m *MockDB) GetSession() db.DatabaseInterface {
+	return m
+}
+
 func (m *MockDB) Where(_ interface{}, _ ...interface{}) db.DatabaseInterface {
 	return m
 }
