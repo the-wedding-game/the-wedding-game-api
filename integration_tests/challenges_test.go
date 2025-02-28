@@ -1511,12 +1511,12 @@ func TestVerifyAnswerChallengeDoesNotExist(t *testing.T) {
 		t.Errorf("Expected status code 404, got %v", statusCode)
 	}
 
-	if responseBody != "{\"message\":\"Answer with Challenge with key 1 not found.\",\"status\":\"error\"}" {
+	if responseBody != "{\"message\":\"Challenge with key 1 not found.\",\"status\":\"error\"}" {
 		t.Errorf("Expected response Not Found, got %v", responseBody)
 	}
 }
 
-func TestVerifyAnswerChallengeNotAnswerQuestionChallenge(t *testing.T) {
+func TestVerifyAnswerChallengeUploadPhotoChallenge(t *testing.T) {
 	db.ResetConnection()
 
 	_, accessToken, err := createUserAndGetAccessToken()
@@ -1540,16 +1540,72 @@ func TestVerifyAnswerChallengeNotAnswerQuestionChallenge(t *testing.T) {
 	}
 
 	verifyAnswerRequest := types.VerifyAnswerRequest{
-		Answer: "test_answer",
+		Answer: "https://images.com/test.jpg",
 	}
 
 	statusCode, responseBody := makeRequestWithToken("POST", "/challenges/"+strconv.Itoa(int(challenge.ID))+"/verify", verifyAnswerRequest, accessToken.Token)
 
-	if statusCode != http.StatusNotFound {
-		t.Errorf("Expected status code 404, got %v", statusCode)
+	if statusCode != http.StatusOK {
+		t.Errorf("Expected status code 200, got %v", statusCode)
 	}
 
-	if responseBody != "{\"message\":\"Answer with Challenge with key "+strconv.Itoa(int(challenge.ID))+" not found.\",\"status\":\"error\"}" {
+	var response types.VerifyAnswerResponse
+	decoder := json.NewDecoder(bytes.NewReader([]byte(responseBody)))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&response); err != nil {
+		t.Errorf("Error unmarshalling response: %v", err)
+		return
+	}
+
+	if response.Correct != true {
+		t.Errorf("Expected correct true, got %v", response.Correct)
+	}
+
+	isCompleted, err := models.IsChallengeCompleted(accessToken.UserID, challenge.ID)
+	if err != nil {
+		t.Errorf("Error checking if challenge is completed: %v", err)
+		return
+	}
+	if !isCompleted {
+		t.Errorf("Expected challenge completed, got %v", isCompleted)
+		return
+	}
+}
+
+func TestVerifyAnswerChallengeUploadPhotoChallengeInvalidUrl(t *testing.T) {
+	db.ResetConnection()
+
+	_, accessToken, err := createUserAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err = challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	verifyAnswerRequest := types.VerifyAnswerRequest{
+		Answer: "invalid_url",
+	}
+
+	statusCode, responseBody := makeRequestWithToken("POST", "/challenges/"+strconv.Itoa(int(challenge.ID))+"/verify", verifyAnswerRequest, accessToken.Token)
+
+	if statusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code 400, got %v", statusCode)
+	}
+
+	if responseBody != "{\"message\":\"invalid image url\",\"status\":\"error\"}" {
 		t.Errorf("Expected response Bad Request, got %v", responseBody)
 	}
 }

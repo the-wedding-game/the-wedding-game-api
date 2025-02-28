@@ -7,7 +7,6 @@ import (
 	"the-wedding-game-api/middleware/validators"
 	"the-wedding-game-api/models"
 	"the-wedding-game-api/types"
-	"the-wedding-game-api/utils"
 )
 
 func GetChallengeById(c *gin.Context) {
@@ -103,7 +102,7 @@ func GetAllChallenges(c *gin.Context) {
 	var response types.GetChallengesResponse
 	response.Challenges = make([]types.GetChallengeResponse, 0)
 	for _, challenge := range challengesArr {
-		isCompleted := utils.IsChallengeInSubmissions(challenge.ID, submissions)
+		isCompleted := models.IsChallengeInSubmissions(challenge.ID, submissions)
 
 		response.Challenges = append(response.Challenges, types.GetChallengeResponse{
 			Id:          challenge.ID,

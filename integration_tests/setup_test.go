@@ -28,7 +28,7 @@ func Setup() {
 }
 
 func TearDown() {
-	//dockerComposeDown()
+	dockerComposeDown()
 }
 
 func dockerComposeUp() {
@@ -77,7 +77,7 @@ func setupTestDb() {
 			}
 
 			log.Println("Migrating schema...")
-			err = db.Debug().AutoMigrate(&models.User{}, &models.AccessToken{}, &models.Challenge{}, &models.Answer{}, &models.Submission{})
+			err = db.AutoMigrate(&models.User{}, &models.AccessToken{}, &models.Challenge{}, &models.Answer{}, &models.Submission{})
 			if err != nil {
 				panic(err)
 				return

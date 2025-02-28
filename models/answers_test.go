@@ -6,11 +6,13 @@ import (
 	test "the-wedding-game-api/_tests"
 	"the-wedding-game-api/db"
 	apperrors "the-wedding-game-api/errors"
+	"the-wedding-game-api/types"
 )
 
 var (
-	testAnswer1 = Answer{ChallengeID: 123, Value: "answer"}
-	testAnswer2 = Answer{ChallengeID: 34324, Value: "another answer"}
+	testChallenge123 = Challenge{ID: 123, Name: "name", Description: "description", Points: 10, Type: types.AnswerQuestionChallenge, Status: types.ActiveChallenge}
+	testAnswer123    = Answer{ChallengeID: 123, Value: "answer"}
+	testAnswer34324  = Answer{ChallengeID: 34324, Value: "another answer"}
 )
 
 func createTestAnswer(answer Answer) {
@@ -18,49 +20,54 @@ func createTestAnswer(answer Answer) {
 	database.Create(&answer)
 }
 
+func createTestChallenge(challenge Challenge) {
+	database := db.GetConnection()
+	database.Create(&challenge)
+}
+
 func TestNewAnswer(t *testing.T) {
-	answer := NewAnswer(testAnswer1.ChallengeID, testAnswer1.Value)
-	if answer.ChallengeID != testAnswer1.ChallengeID {
-		t.Errorf("expected %d but got %d", testAnswer1.ChallengeID, answer.ChallengeID)
+	answer := NewAnswer(testAnswer123.ChallengeID, testAnswer123.Value)
+	if answer.ChallengeID != testAnswer123.ChallengeID {
+		t.Errorf("expected %d but got %d", testAnswer123.ChallengeID, answer.ChallengeID)
 	}
-	if answer.Value != testAnswer1.Value {
-		t.Errorf("expected %s but got %s", testAnswer1.Value, answer.Value)
+	if answer.Value != testAnswer123.Value {
+		t.Errorf("expected %s but got %s", testAnswer123.Value, answer.Value)
 	}
 
-	answer = NewAnswer(testAnswer2.ChallengeID, testAnswer2.Value)
-	if answer.ChallengeID != testAnswer2.ChallengeID {
-		t.Errorf("expected %d but got %d", testAnswer2.ChallengeID, answer.ChallengeID)
+	answer = NewAnswer(testAnswer34324.ChallengeID, testAnswer34324.Value)
+	if answer.ChallengeID != testAnswer34324.ChallengeID {
+		t.Errorf("expected %d but got %d", testAnswer34324.ChallengeID, answer.ChallengeID)
 	}
-	if answer.Value != testAnswer2.Value {
-		t.Errorf("expected %s but got %s", testAnswer2.Value, answer.Value)
+	if answer.Value != testAnswer34324.Value {
+		t.Errorf("expected %s but got %s", testAnswer34324.Value, answer.Value)
 	}
 }
 
 func TestAnswerSave(t *testing.T) {
 	test.SetupMockDb()
 
-	answer := NewAnswer(testAnswer1.ChallengeID, testAnswer1.Value)
+	answer := NewAnswer(testAnswer123.ChallengeID, testAnswer123.Value)
 	savedAnswer, err := answer.Save()
 	if err != nil {
 		t.Errorf("expected nil but got %s", err.Error())
 		return
 	}
 
-	if savedAnswer.ChallengeID != testAnswer1.ChallengeID {
-		t.Errorf("expected %d but got %d", testAnswer1.ChallengeID, savedAnswer.ChallengeID)
+	if savedAnswer.ChallengeID != testAnswer123.ChallengeID {
+		t.Errorf("expected %d but got %d", testAnswer123.ChallengeID, savedAnswer.ChallengeID)
 	}
-	if savedAnswer.Value != testAnswer1.Value {
-		t.Errorf("expected %s but got %s", testAnswer1.Value, savedAnswer.Value)
+	if savedAnswer.Value != testAnswer123.Value {
+		t.Errorf("expected %s but got %s", testAnswer123.Value, savedAnswer.Value)
 	}
 
 	mockDB := db.GetConnection()
 	retrievedAnswer := Answer{}
-	mockDB.First(&retrievedAnswer, testAnswer1.ID)
-	if retrievedAnswer.ID != testAnswer1.ID {
+	mockDB.First(&retrievedAnswer, testAnswer123.ID)
+	if retrievedAnswer.ID != testAnswer123.ID {
 		t.Errorf("expected %d but got %d", savedAnswer.ID, retrievedAnswer.ID)
 	}
-	if retrievedAnswer.ChallengeID != testAnswer1.ChallengeID {
-		t.Errorf("expected %d but got %d", testAnswer1.ChallengeID, retrievedAnswer.ChallengeID)
+	if retrievedAnswer.ChallengeID != testAnswer123.ChallengeID {
+		t.Errorf("expected %d but got %d", testAnswer123.ChallengeID, retrievedAnswer.ChallengeID)
 	}
 }
 
@@ -68,7 +75,7 @@ func TestAnswerSaveNegative(t *testing.T) {
 	mockDB := test.SetupMockDb()
 	mockDB.Error = errors.New("test_error")
 
-	answer := NewAnswer(testAnswer1.ChallengeID, testAnswer1.Value)
+	answer := NewAnswer(testAnswer123.ChallengeID, testAnswer123.Value)
 	_, err := answer.Save()
 	if err == nil {
 		t.Errorf("expected error but got nil")
@@ -85,9 +92,11 @@ func TestAnswerSaveNegative(t *testing.T) {
 
 func TestVerifyAnswer(t *testing.T) {
 	test.SetupMockDb()
-	createTestAnswer(testAnswer1)
 
-	isCorrect, err := VerifyAnswer(testAnswer1.ChallengeID, testAnswer1.Value)
+	createTestChallenge(testChallenge123)
+	createTestAnswer(testAnswer123)
+
+	isCorrect, err := VerifyAnswer(testAnswer123.ChallengeID, testAnswer123.Value)
 	if err != nil {
 		t.Errorf("expected nil but got %s", err.Error())
 		return
@@ -100,9 +109,10 @@ func TestVerifyAnswer(t *testing.T) {
 
 func TestVerifyAnswerIncorrect(t *testing.T) {
 	test.SetupMockDb()
-	createTestAnswer(testAnswer1)
+	createTestChallenge(testChallenge123)
+	createTestAnswer(testAnswer123)
 
-	isCorrect, err := VerifyAnswer(testAnswer1.ChallengeID, "incorrect answer")
+	isCorrect, err := VerifyAnswer(testAnswer123.ChallengeID, "incorrect answer")
 	if err != nil {
 		t.Errorf("expected nil but got %s", err.Error())
 		return
@@ -115,8 +125,9 @@ func TestVerifyAnswerIncorrect(t *testing.T) {
 
 func TestVerifyAnswerNotFound(t *testing.T) {
 	test.SetupMockDb()
+	createTestChallenge(testChallenge123)
 
-	_, err := VerifyAnswer(testAnswer1.ChallengeID, testAnswer1.Value)
+	_, err := VerifyAnswer(testAnswer123.ChallengeID, testAnswer123.Value)
 	if err == nil {
 		t.Errorf("expected error but got nil")
 		return
@@ -134,8 +145,9 @@ func TestVerifyAnswerError(t *testing.T) {
 	mockDB := test.SetupMockDb()
 	mockDB.Error = errors.New("test_error")
 
-	createTestAnswer(testAnswer1)
-	_, err := VerifyAnswer(testAnswer1.ChallengeID, testAnswer1.Value)
+	createTestChallenge(testChallenge123)
+	createTestAnswer(testAnswer123)
+	_, err := VerifyAnswer(testAnswer123.ChallengeID, testAnswer123.Value)
 	if err == nil {
 		t.Errorf("expected error but got nil")
 		return
