@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http/httptest"
 	"os"
@@ -19,7 +20,7 @@ func getFileHeader(filepath string) (*multipart.FileHeader, error) {
 	defer func(file *os.File) {
 		err := file.Close()
 		if err != nil {
-			fmt.Println(fmt.Errorf("error while closing file: %w", err))
+			log.Println(fmt.Errorf("error while closing file: %w", err))
 		}
 	}(file)
 
@@ -59,8 +60,6 @@ func TestGenerateRandomFileName1(t *testing.T) {
 		return
 	}
 
-	fmt.Println(generatedFileName)
-
 	if !test.IsUUID(generatedFileName[:36]) {
 		t.Errorf("Incorrect UUID")
 		return
@@ -78,8 +77,6 @@ func TestGenerateRandomFileName2(t *testing.T) {
 		t.Errorf("Error while generating random file name")
 		return
 	}
-
-	fmt.Println(generatedFileName)
 
 	if !test.IsUUID(generatedFileName[:36]) {
 		t.Errorf("Incorrect UUID")
@@ -99,8 +96,6 @@ func TestGenerateRandomFileName3(t *testing.T) {
 		return
 	}
 
-	fmt.Println(generatedFileName)
-
 	if !test.IsUUID(generatedFileName[:36]) {
 		t.Errorf("Incorrect UUID")
 		return
@@ -118,8 +113,6 @@ func TestGenerateRandomFileName4(t *testing.T) {
 		t.Errorf("Error while generating random file name")
 		return
 	}
-
-	fmt.Println(generatedFileName)
 
 	if !test.IsUUID(generatedFileName[:36]) {
 		t.Errorf("Incorrect UUID")
@@ -139,8 +132,6 @@ func TestGenerateRandomFileName5(t *testing.T) {
 		return
 	}
 
-	fmt.Println(generatedFileName)
-
 	if !test.IsUUID(generatedFileName[:36]) {
 		t.Errorf("Incorrect UUID")
 		return
@@ -158,8 +149,6 @@ func TestGenerateRandomFileNameWithNoExtension1(t *testing.T) {
 		t.Errorf("Error while generating random file name")
 		return
 	}
-
-	fmt.Println(generatedFileName)
 
 	if !test.IsUUID(generatedFileName[:36]) {
 		t.Errorf("Incorrect UUID")
@@ -199,7 +188,7 @@ func TestGetReader(t *testing.T) {
 	defer func(file *os.File) {
 		err := file.Close()
 		if err != nil {
-			fmt.Println(fmt.Errorf("error while closing file: %w", err))
+			log.Println(fmt.Errorf("error while closing file: %w", err))
 		}
 	}(file)
 
@@ -220,8 +209,6 @@ func TestGetReader(t *testing.T) {
 		t.Errorf("Error while reading content")
 		return
 	}
-
-	fmt.Println(string(content))
 
 	expected := "Hello, World!"
 	if string(content) != expected {
@@ -244,9 +231,6 @@ func TestUploadFile(t *testing.T) {
 		t.Errorf(fmt.Errorf("error while uploading file: %w", err).Error())
 		return
 	}
-
-	fmt.Println(url)
-	fmt.Println(url[:20])
 
 	if !IsURLStrict(url) {
 		t.Errorf("invalid URL")

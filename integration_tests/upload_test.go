@@ -3,7 +3,6 @@ package integrationtests
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -102,8 +101,6 @@ func TestUploadImageWithoutFormFile(t *testing.T) {
 	if body != expectedBody {
 		t.Errorf("Expected body to be %v, got %v", expectedBody, body)
 	}
-
-	fmt.Println(body)
 }
 
 func TestUploadImageWithInvalidFormFile(t *testing.T) {
@@ -163,7 +160,6 @@ func TestUploadWithNonImageFile(t *testing.T) {
 func TestUploadImageWithInvalidToken(t *testing.T) {
 	statusCode, body := makeRequestWithFile("POST", "/upload", "image", "../_tests/assets/test_upload_image.jpg", "invalid")
 
-	fmt.Println(body)
 	if statusCode != http.StatusForbidden {
 		t.Errorf("Expected status code 403, got %v", statusCode)
 		return
