@@ -1,13 +1,13 @@
 package routes
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"the-wedding-game-api/middleware"
 	"the-wedding-game-api/middleware/validators"
 	"the-wedding-game-api/models"
 	"the-wedding-game-api/types"
-	"the-wedding-game-api/utils"
 )
 
 func GetChallengeById(c *gin.Context) {
@@ -103,7 +103,7 @@ func GetAllChallenges(c *gin.Context) {
 	var response types.GetChallengesResponse
 	response.Challenges = make([]types.GetChallengeResponse, 0)
 	for _, challenge := range challengesArr {
-		isCompleted := utils.IsChallengeInSubmissions(challenge.ID, submissions)
+		isCompleted := models.IsChallengeInSubmissions(challenge.ID, submissions)
 
 		response.Challenges = append(response.Challenges, types.GetChallengeResponse{
 			Id:          challenge.ID,
@@ -122,6 +122,9 @@ func GetAllChallenges(c *gin.Context) {
 }
 
 func VerifyAnswer(c *gin.Context) {
+	panic("fuck")
+
+	fmt.Println("wtfd")
 	user, err := middleware.GetCurrentUser(c)
 	if err != nil {
 		_ = c.Error(err)
