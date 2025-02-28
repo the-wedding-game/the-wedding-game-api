@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"gorm.io/gorm"
 	"strconv"
 	"the-wedding-game-api/db"
@@ -36,8 +35,6 @@ func (answer Answer) Save() (Answer, error) {
 func VerifyAnswer(challengeId uint, answer string) (bool, error) {
 	conn := db.GetConnection()
 
-	fmt.Println("EEEH", challengeId)
-
 	var challengeModel Challenge
 	err := conn.Where("id = ?", challengeId).First(&challengeModel).GetError()
 	if err != nil {
@@ -46,8 +43,6 @@ func VerifyAnswer(challengeId uint, answer string) (bool, error) {
 		}
 		return false, err
 	}
-
-	fmt.Println("OOOH", challengeModel.Type)
 
 	if challengeModel.Type == types.AnswerQuestionChallenge {
 		return verifyAnswerForQuestion(challengeId, answer)
@@ -76,7 +71,6 @@ func verifyAnswerForQuestion(challengeId uint, answer string) (bool, error) {
 }
 
 func verifyAnswerForPhoto(answer string) (bool, error) {
-	fmt.Println("AAAH")
 	if !utils.IsURLStrict(answer) {
 		return false, apperrors.NewValidationError("invalid image url")
 	}

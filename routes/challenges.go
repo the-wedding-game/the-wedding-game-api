@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"the-wedding-game-api/middleware"
@@ -122,9 +121,6 @@ func GetAllChallenges(c *gin.Context) {
 }
 
 func VerifyAnswer(c *gin.Context) {
-	panic("fuck")
-
-	fmt.Println("wtfd")
 	user, err := middleware.GetCurrentUser(c)
 	if err != nil {
 		_ = c.Error(err)

@@ -10,6 +10,7 @@ import (
 
 type Challenge struct {
 	gorm.Model
+	ID          uint                  `gorm:"primarykey"`
 	Name        string                `gorm:"not null"`
 	Description string                `gorm:"not null"`
 	Points      uint                  `gorm:"not null"`

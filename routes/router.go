@@ -13,7 +13,7 @@ func GetRouter() *gin.Engine {
 	router.GET("/challenges/:id", GetChallengeById)
 	router.POST("/challenges", CreateChallenge)
 	router.GET("/challenges", GetAllChallenges)
-	//router.POST("/challenges/:id/vffferify", VerifyAnswer)
+	router.POST("/challenges/:id/verify", VerifyAnswer)
 
 	router.POST("/auth/login", Login)
 	router.GET("/auth/current-user", GetCurrentUser)
