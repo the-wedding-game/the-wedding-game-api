@@ -32,3 +32,30 @@ jobs:
               file: ./Dockerfile
               push: true
               tags: kaneeldias/the-wedding-game-api:${{ github.sha }}
+
+          - name: Configure AWS Credentials
+            uses: aws-actions/configure-aws-credentials@v4
+            with:
+                aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                aws-region: us-east-1
+
+          - name: Download task definition
+            run: |
+              aws ecs describe-task-definition --task-definition fargate-node-task-defn --query taskDefinition > task-definition.json
+
+          - name: Fill in the new image ID in the AWS ECS task definition
+            id: task-def
+            uses: aws-actions/amazon-ecs-render-task-definition@v1
+            with:
+              task-definition: task-definition.json
+              container-name: nodejs-app-container
+              image: registry.hub.docker.com/kaneeldias/the-wedding-game-api:${{ github.sha }}
+
+          - name: Deploy AWS ECS task definition
+            uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+            with:
+              task-definition: ${{ steps.task-def.outputs.task-definition }}
+              service: the-wedding-game-api-service-3
+              cluster: the-wedding-game
+              wait-for-service-stability: true
