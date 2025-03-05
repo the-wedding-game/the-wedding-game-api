@@ -25,9 +25,11 @@ jobs:
 
           - name: Install dependencies
             run: go mod download
+            working-directory: src
 
           - name: Build project
             run: go build -v ./...
+            working-directory: src
 
           - name: Install Docker Compose
             run: |
@@ -38,6 +40,7 @@ jobs:
 
           - name: Run tests
             run: go test -v ./... -cover -coverprofile=coverage.txt
+            working-directory: src
 
           - name: Upload coverage reports to Codecov
             uses: codecov/codecov-action@v5

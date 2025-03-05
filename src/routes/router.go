@@ -10,6 +10,12 @@ func GetRouter() *gin.Engine {
 	router.Use(middleware.CORSMiddleware())
 	router.Use(middleware.ErrorHandler)
 
+	router.GET("/", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "Hello, World!",
+		})
+	})
+
 	router.GET("/challenges/:id", GetChallengeById)
 	router.POST("/challenges", CreateChallenge)
 	router.GET("/challenges", GetAllChallenges)
