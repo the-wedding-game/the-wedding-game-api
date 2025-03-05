@@ -36,6 +36,7 @@ jobs:
     deploy-to-ecs:
         name: Push Docker image to AWS ECS
         runs-on: ubuntu-latest
+        needs: push-to-docker-hub-registry
 
         steps:
           - name: Configure AWS Credentials
