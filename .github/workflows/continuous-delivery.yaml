@@ -33,6 +33,7 @@ jobs:
               push: true
               tags: kaneeldias/the-wedding-game-api:${{ github.sha }}
 
+    deploy-to-ecs:
           - name: Configure AWS Credentials
             uses: aws-actions/configure-aws-credentials@v4
             with:
