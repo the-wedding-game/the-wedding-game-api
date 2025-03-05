@@ -15,7 +15,7 @@ func main() {
 	port := flag.String("p", "8080", "port to run the server on")
 	flag.Parse()
 
-	err := router.Run(fmt.Sprintf("localhost:%s", *port))
+	err := router.Run(fmt.Sprintf(":%s", *port))
 	if err != nil {
 		log.Println("Error starting server: ", err)
 		return
