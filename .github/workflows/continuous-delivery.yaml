@@ -63,5 +63,5 @@ jobs:
             with:
               task-definition: ${{ steps.task-def.outputs.task-definition }}
               service: the-wedding-game-api-service-3
-              cluster: the-wedding-game
+              cluster: the-wedding-game-api
               wait-for-service-stability: true
