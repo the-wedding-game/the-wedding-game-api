@@ -1,0 +1,70 @@
+name: Continuous Integration
+
+on:
+  push:
+      branches:
+          - main
+  workflow_dispatch:
+
+jobs:
+    push-to-registry:
+        name: Push Docker image to Docker Hub
+        runs-on: ubuntu-latest
+        permissions:
+          packages: write
+          contents: read
+          attestations: write
+          id-token: write
+
+        steps:
+          - name: Checkout code
+            uses: actions/checkout@v4
+
+          - name: Setup Go
+            uses: actions/setup-go@v2
+            with:
+              go-version: 1.23
+
+          - name: Install dependencies
+            run: go mod download
+            working-directory: src
+
+          - name: Build project
+            run: go build -v ./...
+            working-directory: src
+
+          - name: Install Docker Compose
+            run: |
+              sudo curl -L "https://github.com/docker/compose/releases/download/v2.3.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+              sudo chmod +x /usr/local/bin/docker-compose
+              docker-compose --version
+            continue-on-error: false
+
+          - name: Run tests
+            run: go test -v ./... -cover -coverprofile=coverage.txt
+            working-directory: src
+
+          - name: Log in to Docker Hub
+            uses: docker/login-action@v3
+            with:
+              username: ${{ secrets.DOCKER_USERNAME }}
+              password: ${{ secrets.DOCKER_PASSWORD }}
+
+          - name: Set up Docker Buildx
+            uses: docker/setup-buildx-action@v3
+
+          - name: Build and push Docker image
+            id: push
+            uses: docker/build-push-action@v6
+            with:
+              context: .
+              file: ./Dockerfile
+              push: true
+              tags: kaneeldias/the-wedding-game-api:${{ github.sha }}
+
+          - name: Generate artifact attestation
+            uses: actions/attest-build-provenance@v2
+            with:
+              subject-name: index.docker.io/kaneeldias/the-wedding-game-api
+              subject-digest: ${{ steps.push.outputs.digest }}
+              push-to-registry: true
