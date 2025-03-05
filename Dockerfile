@@ -1,14 +1,12 @@
-FROM golang:1.23.0-bullseye
+FROM golang:1.23.0-alpine AS builder
 
 WORKDIR /app
+ADD ./src .
 
-COPY ./src .
+RUN CGO_ENABLED=0 go build -o server
 
-RUN go mod download
+FROM scratch
 
-RUN go build -o /godocker
+COPY --from=builder /app/server /app/server
 
-EXPOSE 8080
-
-CMD ["/godocker"]
-
+CMD ["/app/server"]
