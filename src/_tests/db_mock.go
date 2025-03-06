@@ -75,6 +75,14 @@ func (m *MockDB) Find(dest interface{}, _ ...interface{}) db.DatabaseInterface {
 	return m
 }
 
+func (m *MockDB) GetPointsForUser(_ uint) (uint, error) {
+	if m.Error != nil {
+		return 0, apperrors.NewDatabaseError(m.Error.Error())
+	}
+
+	return 100, nil
+}
+
 func (m *MockDB) GetError() error {
 	if m.Error == nil {
 		return nil
