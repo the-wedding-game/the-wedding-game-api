@@ -35,11 +35,11 @@ func TestErrorHandlerWithAuthenticationError(t *testing.T) {
 	_ = request.Error(apperrors.NewAuthenticationError("test_error"))
 	ErrorHandler(request)
 
-	if request.Writer.Status() != http.StatusForbidden {
-		t.Errorf("expected 403 but got %d", request.Writer.Status())
+	if request.Writer.Status() != http.StatusUnauthorized {
+		t.Errorf("expected 401 but got %d", request.Writer.Status())
 	}
 
-	expectedBody := "{\"message\":\"access denied\",\"status\":\"error\"}"
+	expectedBody := "{\"message\":\"test_error\",\"status\":\"error\"}"
 	if blw.GetBody() != expectedBody {
 		t.Errorf("expected %s but got %s", expectedBody, blw.GetBody())
 	}
