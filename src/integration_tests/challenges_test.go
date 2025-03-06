@@ -300,11 +300,11 @@ func TestGetChallengeByWithNoAccessToken(t *testing.T) {
 
 	statusCode, responseBody := makeRequest("GET", "/challenges/"+strconv.Itoa(int(challenge.ID)), nil)
 
-	if statusCode != http.StatusForbidden {
-		t.Errorf("Expected status code 403, got %v", statusCode)
+	if statusCode != http.StatusUnauthorized {
+		t.Errorf("Expected status code 401, got %v", statusCode)
 	}
 
-	if responseBody != "{\"message\":\"access denied\",\"status\":\"error\"}" {
+	if responseBody != "{\"message\":\"access token is not provided\",\"status\":\"error\"}" {
 		t.Errorf("Expected response Unauthorized, got %v", responseBody)
 	}
 }
@@ -614,11 +614,11 @@ func TestCreateChallengeWithMissingAccessToken(t *testing.T) {
 	}
 	statusCode, responseBody := makeRequest("POST", "/challenges", challengeRequest)
 
-	if statusCode != http.StatusForbidden {
-		t.Errorf("Expected status code 403, got %v", statusCode)
+	if statusCode != http.StatusUnauthorized {
+		t.Errorf("Expected status code 401, got %v", statusCode)
 	}
 
-	if responseBody != "{\"message\":\"access denied\",\"status\":\"error\"}" {
+	if responseBody != "{\"message\":\"access token is not provided\",\"status\":\"error\"}" {
 		t.Errorf("Expected response Unauthorized, got %v", responseBody)
 	}
 }
@@ -1315,11 +1315,11 @@ func TestGetAllChallengesWithoutAccessToken(t *testing.T) {
 
 	statusCode, responseBody := makeRequest("GET", "/challenges", nil)
 
-	if statusCode != http.StatusForbidden {
-		t.Errorf("Expected status code 403, got %v", statusCode)
+	if statusCode != http.StatusUnauthorized {
+		t.Errorf("Expected status code 401, got %v", statusCode)
 	}
 
-	if responseBody != "{\"message\":\"access denied\",\"status\":\"error\"}" {
+	if responseBody != "{\"message\":\"access token is not provided\",\"status\":\"error\"}" {
 		t.Errorf("Expected response Unauthorized, got %v", responseBody)
 	}
 }

@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"os"
 	"testing"
 	test "the-wedding-game-api/_tests"
 	"the-wedding-game-api/db"
@@ -137,5 +138,51 @@ func TestUserSaveError(t *testing.T) {
 	}
 	if err.Error() != "test_error" {
 		t.Errorf("expected test_error but got %s", err.Error())
+	}
+}
+
+func TestValidatePassword1(t *testing.T) {
+	err := os.Setenv("ADMIN_PASSWORD", "test_password")
+	if err != nil {
+		t.Errorf("Failed to set environment variable: %s", err.Error())
+	}
+
+	err = ValidatePassword("test_password")
+	if err != nil {
+		t.Errorf("expected nil but got %s", err.Error())
+		return
+	}
+}
+
+func TestValidatePassword2(t *testing.T) {
+	err := os.Setenv("ADMIN_PASSWORD", "another password")
+	if err != nil {
+		t.Errorf("Failed to set environment variable: %s", err.Error())
+	}
+
+	err = ValidatePassword("another password")
+	if err != nil {
+		t.Errorf("expected nil but got %s", err.Error())
+		return
+	}
+}
+
+func TestValidatePasswordError(t *testing.T) {
+	err := os.Setenv("ADMIN_PASSWORD", "test_password")
+	if err != nil {
+		t.Errorf("Failed to set environment variable: %s", err.Error())
+	}
+
+	err = ValidatePassword("wrong_password")
+	if err == nil {
+		t.Errorf("expected error but got nil")
+		return
+	}
+
+	if !apperrors.IsAuthenticationError(err) {
+		t.Errorf("expected true but got false")
+	}
+	if err.Error() != "invalid password" {
+		t.Errorf("expected invalid password but got %s", err.Error())
 	}
 }

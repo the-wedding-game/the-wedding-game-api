@@ -96,12 +96,12 @@ func TestUploadImageNotAdmin(t *testing.T) {
 
 func TestUploadImageNoToken(t *testing.T) {
 	statusCode, body := makeRequestWithFile("POST", "/upload", "image", "../_tests/assets/test_upload_image.jpg", "")
-	if statusCode != http.StatusForbidden {
+	if statusCode != http.StatusUnauthorized {
 		t.Errorf("Expected status code 403, got %v", statusCode)
 		return
 	}
 
-	expectedBody := `{"message":"access denied","status":"error"}`
+	expectedBody := `{"message":"access token is not provided","status":"error"}`
 	if body != expectedBody {
 		t.Errorf("Expected body to be %v, got %v", expectedBody, body)
 	}

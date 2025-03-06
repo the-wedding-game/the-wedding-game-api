@@ -15,11 +15,19 @@ func ErrorHandler(c *gin.Context) {
 	err := c.Errors.Last()
 
 	if err != nil {
-		if apperrors.IsAccessTokenNotFoundError(err.Err) || apperrors.IsAuthenticationError(err.Err) ||
-			apperrors.IsAuthorizationError(err.Err) {
+		if apperrors.IsAccessTokenNotFoundError(err.Err) || apperrors.IsAuthorizationError(err.Err) {
 			c.JSON(http.StatusForbidden, gin.H{
 				"status":  "error",
 				"message": "access denied",
+			})
+			c.Abort()
+			return
+		}
+
+		if apperrors.IsAuthenticationError(err.Err) {
+			c.JSON(http.StatusUnauthorized, gin.H{
+				"status":  "error",
+				"message": err.Err.Error(),
 			})
 			c.Abort()
 			return
