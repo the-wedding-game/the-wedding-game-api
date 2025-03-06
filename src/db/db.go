@@ -8,6 +8,7 @@ type DatabaseInterface interface {
 	First(dest interface{}, where ...interface{}) DatabaseInterface
 	Create(value interface{}) DatabaseInterface
 	Find(dest interface{}, where ...interface{}) DatabaseInterface
+	GetPointsForUser(userId uint) (uint, error)
 	GetError() error
 }
 
