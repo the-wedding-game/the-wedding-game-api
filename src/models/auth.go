@@ -2,6 +2,7 @@ package models
 
 import (
 	"gorm.io/gorm"
+	"os"
 	"the-wedding-game-api/db"
 	apperrors "the-wedding-game-api/errors"
 	"the-wedding-game-api/types"
@@ -30,6 +31,14 @@ func DoesUserExist(username string) (bool, User, error) {
 		return false, User{}, err
 	}
 	return true, user, nil
+}
+
+func ValidatePassword(password string) error {
+	expectedPassword := os.Getenv("ADMIN_PASSWORD")
+	if password != expectedPassword {
+		return apperrors.NewAuthenticationError("invalid password")
+	}
+	return nil
 }
 
 func (user User) Save() (User, error) {

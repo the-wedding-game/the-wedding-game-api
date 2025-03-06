@@ -3,7 +3,6 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	apperrors "the-wedding-game-api/errors"
 	"the-wedding-game-api/middleware"
 	"the-wedding-game-api/models"
 	"the-wedding-game-api/types"
@@ -32,8 +31,11 @@ func Login(c *gin.Context) {
 	}
 
 	if user.Role == types.Admin {
-		_ = c.Error(apperrors.NewAuthorizationError())
-		return
+		err := models.ValidatePassword(loginRequest.Password)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
 	}
 
 	accessToken, err := models.LinkAccessTokenToUser(user.ID)
