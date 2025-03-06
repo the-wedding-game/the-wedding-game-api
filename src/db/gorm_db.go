@@ -49,6 +49,23 @@ func (p *database) Find(dest interface{}, where ...interface{}) DatabaseInterfac
 	return p
 }
 
+func (p *database) GetPointsForUser(userId uint) (uint, error) {
+	var points uint
+	tx := p.db.Raw(`
+		SELECT SUM(challenges.points) AS points
+		FROM submissions
+		INNER JOIN challenges ON submissions.challenge_id = challenges.id
+		WHERE submissions.user_id = ?
+		GROUP BY submissions.user_id
+		`, userId).Scan(&points)
+
+	if tx.Error != nil {
+		return 0, apperrors.NewDatabaseError(tx.Error.Error())
+	}
+
+	return points, nil
+}
+
 func (p *database) GetError() error {
 	err := p.db.Error
 	if err == nil {

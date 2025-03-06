@@ -48,3 +48,12 @@ func (user User) Save() (User, error) {
 	}
 	return user, nil
 }
+
+func (user User) GetPoints() (uint, error) {
+	conn := db.GetConnection()
+	points, err := conn.GetPointsForUser(user.ID)
+	if err != nil {
+		return 0, err
+	}
+	return points, nil
+}

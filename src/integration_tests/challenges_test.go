@@ -3,75 +3,13 @@ package integrationtests
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
-	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"testing"
 	"the-wedding-game-api/db"
 	"the-wedding-game-api/models"
 	"the-wedding-game-api/types"
 )
-
-var counter = 0
-
-func createUserAndGetAccessToken() (models.User, models.AccessToken, error) {
-	counter++
-	user := models.User{
-		Username: "test_user_for_challenges_" + strconv.Itoa(counter),
-		Role:     types.Player,
-	}
-	user, err := user.Save()
-	if err != nil {
-		return models.User{}, models.AccessToken{}, err
-	}
-
-	accessToken, err := models.LinkAccessTokenToUser(user.ID)
-	if err != nil {
-		return models.User{}, models.AccessToken{}, err
-	}
-
-	return user, accessToken, nil
-}
-
-func createAdminAndGetAccessToken() (models.User, models.AccessToken, error) {
-	counter++
-	user := models.User{
-		Username: "test_user_for_challenges_" + strconv.Itoa(counter),
-		Role:     types.Admin,
-	}
-	user, err := user.Save()
-	if err != nil {
-		return models.User{}, models.AccessToken{}, err
-	}
-
-	accessToken, err := models.LinkAccessTokenToUser(user.ID)
-	if err != nil {
-		return models.User{}, models.AccessToken{}, err
-	}
-
-	return user, accessToken, nil
-}
-
-func deleteAllChallenges() {
-	dbURI := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s",
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_PORT"),
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_NAME"),
-		os.Getenv("DB_PASS"),
-	)
-
-	database, err := gorm.Open(postgres.Open(dbURI))
-	if err != nil {
-		log.Fatalf("Error connecting to database: %v", err)
-	}
-
-	database.Delete(&models.Challenge{}, "1 = 1")
-}
 
 func TestGetChallengeByIdUploadPhoto(t *testing.T) {
 	db.ResetConnection()

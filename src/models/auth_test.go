@@ -186,3 +186,39 @@ func TestValidatePasswordError(t *testing.T) {
 		t.Errorf("expected invalid password but got %s", err.Error())
 	}
 }
+
+func TestGetPoints(t *testing.T) {
+	test.SetupMockDb()
+	createTestUser(testUser)
+
+	user := NewUser(testUser.Username)
+	points, err := user.GetPoints()
+	if err != nil {
+		t.Errorf("expected nil but got %s", err.Error())
+		return
+	}
+
+	if points != 100 {
+		t.Errorf("expected 100 but got %d", points)
+	}
+}
+
+func TestGetPointsError(t *testing.T) {
+	mockDb := test.SetupMockDb()
+	createTestUser(testUser)
+
+	mockDb.Error = errors.New("test_error")
+	user := NewUser(testUser.Username)
+	_, err := user.GetPoints()
+	if err == nil {
+		t.Errorf("expected error but got nil")
+		return
+	}
+
+	if !apperrors.IsDatabaseError(err) {
+		t.Errorf("expected true but got false")
+	}
+	if err.Error() != "test_error" {
+		t.Errorf("expected test_error but got %s", err.Error())
+	}
+}
