@@ -6,6 +6,7 @@ import (
 	"strings"
 	"the-wedding-game-api/db"
 	apperrors "the-wedding-game-api/errors"
+	"the-wedding-game-api/types"
 )
 
 type MockDB struct {
@@ -81,6 +82,18 @@ func (m *MockDB) GetPointsForUser(_ uint) (uint, error) {
 	}
 
 	return 100, nil
+}
+
+func (m *MockDB) GetLeaderboard() ([]types.LeaderboardEntry, error) {
+	if m.Error != nil {
+		return nil, apperrors.NewDatabaseError(m.Error.Error())
+	}
+
+	return []types.LeaderboardEntry{
+		{Username: "user1", Points: 100},
+		{Username: "user2", Points: 200},
+		{Username: "user3", Points: 300},
+	}, nil
 }
 
 func (m *MockDB) GetError() error {
