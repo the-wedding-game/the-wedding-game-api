@@ -203,3 +203,22 @@ func completeChallenge(challengeID uint, userID uint) error {
 
 	return nil
 }
+
+func resetDatabase() error {
+	dbURI := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_NAME"),
+		os.Getenv("DB_PASS"),
+	)
+
+	database, err := gorm.Open(postgres.Open(dbURI))
+	if err != nil {
+		return err
+	}
+
+	database.Exec("TRUNCATE TABLE users, access_tokens, challenges, submissions RESTART IDENTITY CASCADE")
+
+	return nil
+}

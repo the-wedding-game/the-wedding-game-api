@@ -9,6 +9,8 @@ import (
 	"log"
 	"os"
 	apperrors "the-wedding-game-api/errors"
+	"the-wedding-game-api/types"
+	"time"
 )
 
 type database struct {
@@ -66,6 +68,24 @@ func (p *database) GetPointsForUser(userId uint) (uint, error) {
 	return points, nil
 }
 
+func (p *database) GetLeaderboard() ([]types.LeaderboardEntry, error) {
+	var leaderboard []types.LeaderboardEntry
+	tx := p.db.Raw(`
+		SELECT users.username, SUM(challenges.points) AS points
+		FROM submissions
+		INNER JOIN users ON submissions.user_id = users.id
+		INNER JOIN challenges ON submissions.challenge_id = challenges.id
+		GROUP BY users.username
+		ORDER BY points DESC
+		`).Scan(&leaderboard)
+
+	if tx.Error != nil {
+		return nil, apperrors.NewDatabaseError(tx.Error.Error())
+	}
+
+	return leaderboard, nil
+}
+
 func (p *database) GetError() error {
 	err := p.db.Error
 	if err == nil {
@@ -94,6 +114,11 @@ func newDatabase() DatabaseInterface {
 		log.Printf("Error connecting to database: %v\n", err)
 		log.Fatal("Could not connect database")
 	}
+
+	conn, _ := db.DB()
+	conn.SetConnMaxIdleTime(time.Minute * 5)
+	conn.SetConnMaxLifetime(time.Minute * 15)
+	conn.SetMaxOpenConns(100)
 
 	return &database{
 		db:                db,

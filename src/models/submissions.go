@@ -4,6 +4,7 @@ import (
 	"gorm.io/gorm"
 	"the-wedding-game-api/db"
 	apperrors "the-wedding-game-api/errors"
+	"the-wedding-game-api/types"
 )
 
 type Submission struct {
@@ -52,4 +53,13 @@ func GetCompletedChallenges(userId uint) ([]Submission, error) {
 		return nil, err
 	}
 	return submissions, nil
+}
+
+func GetLeaderboard() ([]types.LeaderboardEntry, error) {
+	conn := db.GetConnection()
+	leaderboard, err := conn.GetLeaderboard()
+	if err != nil {
+		return nil, err
+	}
+	return leaderboard, nil
 }

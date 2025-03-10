@@ -2,10 +2,12 @@ package models
 
 import (
 	"errors"
+	"reflect"
 	"testing"
 	test "the-wedding-game-api/_tests"
 	"the-wedding-game-api/db"
 	apperrors "the-wedding-game-api/errors"
+	"the-wedding-game-api/types"
 )
 
 var (
@@ -217,5 +219,43 @@ func TestGetCompletedChallengesNotFound(t *testing.T) {
 
 	if len(submissions) != 0 {
 		t.Errorf("expected 0 but got %d", len(submissions))
+	}
+}
+
+func TestGetLeaderboard(t *testing.T) {
+	test.SetupMockDb()
+
+	leaderboard, err := GetLeaderboard()
+	if err != nil {
+		t.Errorf("expected nil but got %v", err)
+		return
+	}
+
+	expectedLeaderboard := []types.LeaderboardEntry{
+		{Username: "user1", Points: 100},
+		{Username: "user2", Points: 200},
+		{Username: "user3", Points: 300},
+	}
+
+	if !reflect.DeepEqual(leaderboard, expectedLeaderboard) {
+		t.Errorf("expected %v but got %v", expectedLeaderboard, leaderboard)
+	}
+}
+
+func TestGetLeaderboardError(t *testing.T) {
+	mockDb := test.SetupMockDb()
+	mockDb.Error = errors.New("test_error")
+
+	_, err := GetLeaderboard()
+	if err == nil {
+		t.Errorf("expected error but got nil")
+		return
+	}
+
+	if !apperrors.IsDatabaseError(err) {
+		t.Errorf("expected true but got false")
+	}
+	if err.Error() != "test_error" {
+		t.Errorf("expected test_error but got %s", err.Error())
 	}
 }
