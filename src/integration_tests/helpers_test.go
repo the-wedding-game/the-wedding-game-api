@@ -173,6 +173,42 @@ func makeRequestWithToken(method string, path string, bodyObj interface{}, acces
 	return resp.Code, resp.Body.String()
 }
 
+func createChallenge() (models.Challenge, error) {
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      100,
+		Image:       "test_image",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.ActiveChallenge,
+	}
+
+	challenge, err := challenge.Save()
+	if err != nil {
+		return models.Challenge{}, err
+	}
+
+	return challenge, nil
+}
+
+func createAnswerQuestionChallenge() (models.Challenge, error) {
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      100,
+		Image:       "test_image",
+		Type:        types.AnswerQuestionChallenge,
+		Status:      types.ActiveChallenge,
+	}
+
+	challenge, err := challenge.Save()
+	if err != nil {
+		return models.Challenge{}, err
+	}
+
+	return challenge, nil
+}
+
 func createChallengeWithPoints(points uint) (models.Challenge, error) {
 	challenge := models.Challenge{
 		Name:        "test_challenge",
@@ -195,6 +231,20 @@ func completeChallenge(challengeID uint, userID uint) error {
 	submission := models.Submission{
 		ChallengeID: challengeID,
 		UserID:      userID,
+	}
+	_, err := submission.Save()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func createSubmission(challengeID uint, userID uint, answer string) error {
+	submission := models.Submission{
+		ChallengeID: challengeID,
+		UserID:      userID,
+		Answer:      answer,
 	}
 	_, err := submission.Save()
 	if err != nil {

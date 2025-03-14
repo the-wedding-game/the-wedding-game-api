@@ -1,6 +1,8 @@
 package db
 
-import "the-wedding-game-api/types"
+import (
+	"the-wedding-game-api/types"
+)
 
 var databaseConnection DatabaseInterface
 
@@ -12,6 +14,7 @@ type DatabaseInterface interface {
 	Find(dest interface{}, where ...interface{}) DatabaseInterface
 	GetPointsForUser(userId uint) (uint, error)
 	GetLeaderboard() ([]types.LeaderboardEntry, error)
+	GetGallery() ([]types.GalleryItem, error)
 	GetError() error
 }
 
