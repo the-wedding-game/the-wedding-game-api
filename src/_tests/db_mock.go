@@ -96,6 +96,18 @@ func (m *MockDB) GetLeaderboard() ([]types.LeaderboardEntry, error) {
 	}, nil
 }
 
+func (m *MockDB) GetGallery() ([]types.GalleryItem, error) {
+	if m.Error != nil {
+		return nil, apperrors.NewDatabaseError(m.Error.Error())
+	}
+
+	return []types.GalleryItem{
+		{Url: "https://example.com/image1.jpg", SubmittedBy: "user1"},
+		{Url: "invalid_url", SubmittedBy: "user2"},
+		{Url: "https://example.com/image3.jpg", SubmittedBy: "user3"},
+	}, nil
+}
+
 func (m *MockDB) GetError() error {
 	if m.Error == nil {
 		return nil
