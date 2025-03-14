@@ -27,6 +27,8 @@ func GetRouter() *gin.Engine {
 	router.GET("/points/me", GetCurrentUserPoints)
 	router.GET("/leaderboard", GetLeaderboard)
 
+	router.GET("/gallery", GetGallery)
+
 	router.POST("/upload", HandleImageUpload)
 
 	return router

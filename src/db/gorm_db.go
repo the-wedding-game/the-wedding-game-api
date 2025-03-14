@@ -86,6 +86,26 @@ func (p *database) GetLeaderboard() ([]types.LeaderboardEntry, error) {
 	return leaderboard, nil
 }
 
+func (p *database) GetGallery() ([]types.GalleryItem, error) {
+	var gallery []types.GalleryItem
+	tx := p.db.Raw(`
+		SELECT 
+		    submissions.answer AS Url,
+		    users.username AS "SubmittedBy"
+		FROM submissions
+		INNER JOIN users ON submissions.user_id = users.id
+		INNER JOIN challenges ON submissions.challenge_id = challenges.id
+		WHERE challenges.type = ?
+		ORDER BY submissions.created_at DESC
+	`, types.UploadPhotoChallenge).Scan(&gallery)
+
+	if tx.Error != nil {
+		return nil, apperrors.NewDatabaseError(tx.Error.Error())
+	}
+
+	return gallery, nil
+}
+
 func (p *database) GetError() error {
 	err := p.db.Error
 	if err == nil {
