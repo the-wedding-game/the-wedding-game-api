@@ -13,7 +13,7 @@ func GetGalleryImages() ([]types.GalleryItem, error) {
 		return nil, err
 	}
 
-	var validGallery []types.GalleryItem
+	var validGallery = make([]types.GalleryItem, 0)
 	for i := range gallery {
 		if utils.IsURLStrict(gallery[i].Url) {
 			validGallery = append(validGallery, gallery[i])
