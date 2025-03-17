@@ -2,7 +2,6 @@ package models
 
 import (
 	"gorm.io/gorm"
-	"the-wedding-game-api/db"
 	apperrors "the-wedding-game-api/errors"
 	"the-wedding-game-api/types"
 )
@@ -26,7 +25,7 @@ func NewSubmission(userId uint, challengeId uint, answer string) Submission {
 }
 
 func (s *Submission) Save() (*Submission, error) {
-	conn := db.GetConnection()
+	conn := GetConnection()
 	if err := conn.Create(s).GetError(); err != nil {
 		return nil, err
 	}
@@ -34,7 +33,7 @@ func (s *Submission) Save() (*Submission, error) {
 }
 
 func IsChallengeCompleted(userId uint, challengeId uint) (bool, error) {
-	conn := db.GetConnection()
+	conn := GetConnection()
 	var submission Submission
 	err := conn.Where("user_id = ? AND challenge_id = ?", userId, challengeId).First(&submission).GetError()
 	if err != nil {
@@ -47,7 +46,7 @@ func IsChallengeCompleted(userId uint, challengeId uint) (bool, error) {
 }
 
 func GetCompletedChallenges(userId uint) ([]Submission, error) {
-	conn := db.GetConnection()
+	conn := GetConnection()
 	var submissions []Submission
 	if err := conn.Where("user_id = ?", userId).Find(&submissions).GetError(); err != nil {
 		return nil, err
@@ -56,7 +55,7 @@ func GetCompletedChallenges(userId uint) ([]Submission, error) {
 }
 
 func GetLeaderboard() ([]types.LeaderboardEntry, error) {
-	conn := db.GetConnection()
+	conn := GetConnection()
 	leaderboard, err := conn.GetLeaderboard()
 	if err != nil {
 		return nil, err

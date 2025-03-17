@@ -3,8 +3,6 @@ package models
 import (
 	"errors"
 	"testing"
-	test "the-wedding-game-api/_tests"
-	"the-wedding-game-api/db"
 	apperrors "the-wedding-game-api/errors"
 	"time"
 )
@@ -14,17 +12,17 @@ var (
 )
 
 func createTestAccessToken(accessToken AccessToken) {
-	database := db.GetConnection()
+	database := GetConnection()
 	database.Create(&accessToken)
 }
 
 func createTestUser(user User) {
-	database := db.GetConnection()
+	database := GetConnection()
 	database.Create(&user)
 }
 
 func TestLinkAccessTokenToUser(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 	accessToken, err := LinkAccessTokenToUser(1)
 	if err != nil {
 		t.Errorf("expected nil but got %s", err.Error())
@@ -46,7 +44,7 @@ func TestLinkAccessTokenToUser(t *testing.T) {
 }
 
 func TestLinkAccessTokenToUserNegative(t *testing.T) {
-	mockDb := test.SetupMockDb()
+	mockDb := SetupMockDb()
 
 	mockDb.Error = errors.New("test_error")
 
@@ -65,7 +63,7 @@ func TestLinkAccessTokenToUserNegative(t *testing.T) {
 }
 
 func TestGetUserByAccessToken(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 	createTestAccessToken(testAccessToken)
 	createTestUser(testUser)
 
@@ -81,7 +79,7 @@ func TestGetUserByAccessToken(t *testing.T) {
 }
 
 func TestGetUserByAccessTokenNotFound(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 
 	_, err := GetUserByAccessToken("test_access_token")
 	if err == nil {
@@ -98,7 +96,7 @@ func TestGetUserByAccessTokenNotFound(t *testing.T) {
 }
 
 func TestGetUserByAccessTokenUserNotFound(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 	createTestAccessToken(testAccessToken)
 
 	_, err := GetUserByAccessToken("test_access_token")
@@ -116,7 +114,7 @@ func TestGetUserByAccessTokenUserNotFound(t *testing.T) {
 }
 
 func TestGetUserByAccessTokenError(t *testing.T) {
-	mockDb := test.SetupMockDb()
+	mockDb := SetupMockDb()
 	createTestAccessToken(testAccessToken)
 	createTestUser(testUser)
 

@@ -3,7 +3,6 @@ package models
 import (
 	"errors"
 	"testing"
-	test "the-wedding-game-api/_tests"
 	apperrors "the-wedding-game-api/errors"
 	"the-wedding-game-api/types"
 )
@@ -14,7 +13,7 @@ var (
 )
 
 func TestGetGalleryImages(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 
 	gallery, err := GetGalleryImages()
 	if err != nil {
@@ -43,7 +42,7 @@ func TestGetGalleryImages(t *testing.T) {
 }
 
 func TestGetGalleryImagesError(t *testing.T) {
-	mockDb := test.SetupMockDb()
+	mockDb := SetupMockDb()
 	mockDb.Error = errors.New("test_error")
 
 	_, err := GetGalleryImages()

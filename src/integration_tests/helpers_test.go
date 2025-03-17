@@ -71,7 +71,13 @@ func deleteAllChallenges() {
 		log.Fatalf("Error connecting to database: %v", err)
 	}
 
-	database.Delete(&models.Challenge{}, "1 = 1")
+	database.Exec(`DELETE FROM answers`)
+	database.Exec(`DELETE FROM submissions`)
+	database.Exec(`DELETE FROM challenges`)
+
+	if database.Error != nil {
+		log.Fatalf("Error deleting challenges: %v", database.Error)
+	}
 }
 
 func makeRequest(method string, path string, bodyObj interface{}) (int, string) {

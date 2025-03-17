@@ -1,12 +1,11 @@
 package middleware
 
 import (
+	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"strings"
 	apperrors "the-wedding-game-api/errors"
-
-	"github.com/gin-gonic/gin"
 )
 
 func ErrorHandler(c *gin.Context) {

@@ -5,17 +5,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http/httptest"
 	"strings"
-	"the-wedding-game-api/db"
 	"the-wedding-game-api/storage"
 )
-
-func SetupMockDb() *MockDB {
-	mockDB := &MockDB{}
-	db.GetConnection = func() db.DatabaseInterface {
-		return mockDB
-	}
-	return mockDB
-}
 
 func SetupMockStorage() *MockStorage {
 	mockStorage := &MockStorage{}

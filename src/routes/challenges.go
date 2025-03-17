@@ -87,7 +87,7 @@ func GetAllChallenges(c *gin.Context) {
 		return
 	}
 
-	challengesArr, err := models.GetAllChallenges()
+	challengesArr, err := models.GetAllChallenges(false)
 	if err != nil {
 		_ = c.Error(err)
 		return

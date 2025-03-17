@@ -3,8 +3,6 @@ package models
 import (
 	"errors"
 	"testing"
-	test "the-wedding-game-api/_tests"
-	"the-wedding-game-api/db"
 	apperrors "the-wedding-game-api/errors"
 	"the-wedding-game-api/types"
 )
@@ -16,12 +14,12 @@ var (
 )
 
 func createTestAnswer(answer Answer) {
-	database := db.GetConnection()
+	database := GetConnection()
 	database.Create(&answer)
 }
 
 func createTestChallenge(challenge Challenge) {
-	database := db.GetConnection()
+	database := GetConnection()
 	database.Create(&challenge)
 }
 
@@ -44,7 +42,7 @@ func TestNewAnswer(t *testing.T) {
 }
 
 func TestAnswerSave(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 
 	answer := NewAnswer(testAnswer123.ChallengeID, testAnswer123.Value)
 	savedAnswer, err := answer.Save()
@@ -60,7 +58,7 @@ func TestAnswerSave(t *testing.T) {
 		t.Errorf("expected %s but got %s", testAnswer123.Value, savedAnswer.Value)
 	}
 
-	mockDB := db.GetConnection()
+	mockDB := GetConnection()
 	retrievedAnswer := Answer{}
 	mockDB.First(&retrievedAnswer, testAnswer123.ID)
 	if retrievedAnswer.ID != testAnswer123.ID {
@@ -72,7 +70,7 @@ func TestAnswerSave(t *testing.T) {
 }
 
 func TestAnswerSaveNegative(t *testing.T) {
-	mockDB := test.SetupMockDb()
+	mockDB := SetupMockDb()
 	mockDB.Error = errors.New("test_error")
 
 	answer := NewAnswer(testAnswer123.ChallengeID, testAnswer123.Value)
@@ -91,7 +89,7 @@ func TestAnswerSaveNegative(t *testing.T) {
 }
 
 func TestVerifyAnswer(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 
 	createTestChallenge(testChallenge123)
 	createTestAnswer(testAnswer123)
@@ -108,7 +106,7 @@ func TestVerifyAnswer(t *testing.T) {
 }
 
 func TestVerifyAnswerIncorrect(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 	createTestChallenge(testChallenge123)
 	createTestAnswer(testAnswer123)
 
@@ -124,7 +122,7 @@ func TestVerifyAnswerIncorrect(t *testing.T) {
 }
 
 func TestVerifyAnswerNotFound(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 	createTestChallenge(testChallenge123)
 
 	_, err := VerifyAnswer(testAnswer123.ChallengeID, testAnswer123.Value)
@@ -142,7 +140,7 @@ func TestVerifyAnswerNotFound(t *testing.T) {
 }
 
 func TestVerifyAnswerError(t *testing.T) {
-	mockDB := test.SetupMockDb()
+	mockDB := SetupMockDb()
 	mockDB.Error = errors.New("test_error")
 
 	createTestChallenge(testChallenge123)
