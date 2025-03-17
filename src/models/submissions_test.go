@@ -4,8 +4,6 @@ import (
 	"errors"
 	"reflect"
 	"testing"
-	test "the-wedding-game-api/_tests"
-	"the-wedding-game-api/db"
 	apperrors "the-wedding-game-api/errors"
 	"the-wedding-game-api/types"
 )
@@ -37,7 +35,7 @@ func TestNewSubmission(t *testing.T) {
 }
 
 func TestSubmissionSave(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 
 	submission := &testSubmission1
 	savedSubmission, err := submission.Save()
@@ -55,7 +53,7 @@ func TestSubmissionSave(t *testing.T) {
 		t.Errorf("expected %s but got %s", testSubmission1.Answer, savedSubmission.Answer)
 	}
 
-	mockDb := db.GetConnection()
+	mockDb := GetConnection()
 	var submissionFromDb Submission
 	if err := mockDb.First(&submissionFromDb, savedSubmission.ID).GetError(); err != nil {
 		t.Errorf("expected nil but got %v", err)
@@ -73,7 +71,7 @@ func TestSubmissionSave(t *testing.T) {
 }
 
 func TestSubmissionSaveError(t *testing.T) {
-	mockDb := test.SetupMockDb()
+	mockDb := SetupMockDb()
 	mockDb.Error = errors.New("test_error")
 
 	_, err := testSubmission1.Save()
@@ -90,7 +88,7 @@ func TestSubmissionSaveError(t *testing.T) {
 }
 
 func TestIsChallengeCompleted(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 
 	submission := &testSubmission1
 	_, err := submission.Save()
@@ -108,7 +106,7 @@ func TestIsChallengeCompleted(t *testing.T) {
 }
 
 func TestIsChallengeCompletedNotFound(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 
 	isCompleted, err := IsChallengeCompleted(testSubmission1.UserID, testSubmission1.ChallengeID)
 	if err != nil {
@@ -121,7 +119,7 @@ func TestIsChallengeCompletedNotFound(t *testing.T) {
 }
 
 func TestIsChallengeCompletedError(t *testing.T) {
-	mockDb := test.SetupMockDb()
+	mockDb := SetupMockDb()
 
 	_, err := testSubmission1.Save()
 	if err != nil {
@@ -144,7 +142,7 @@ func TestIsChallengeCompletedError(t *testing.T) {
 }
 
 func TestGetCompletedChallenges(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 
 	_, err := testSubmission1.Save()
 	if err != nil {
@@ -184,7 +182,7 @@ func TestGetCompletedChallenges(t *testing.T) {
 }
 
 func TestGetCompletedChallengesError(t *testing.T) {
-	mockDb := test.SetupMockDb()
+	mockDb := SetupMockDb()
 
 	_, err := testSubmission1.Save()
 	if err != nil {
@@ -209,7 +207,7 @@ func TestGetCompletedChallengesError(t *testing.T) {
 }
 
 func TestGetCompletedChallengesNotFound(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 
 	submissions, err := GetCompletedChallenges(testSubmission1.UserID)
 	if err != nil {
@@ -223,7 +221,7 @@ func TestGetCompletedChallengesNotFound(t *testing.T) {
 }
 
 func TestGetLeaderboard(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 
 	leaderboard, err := GetLeaderboard()
 	if err != nil {
@@ -243,7 +241,7 @@ func TestGetLeaderboard(t *testing.T) {
 }
 
 func TestGetLeaderboardError(t *testing.T) {
-	mockDb := test.SetupMockDb()
+	mockDb := SetupMockDb()
 	mockDb.Error = errors.New("test_error")
 
 	_, err := GetLeaderboard()

@@ -3,7 +3,6 @@ package models
 import (
 	"gorm.io/gorm"
 	"strconv"
-	"the-wedding-game-api/db"
 	apperrors "the-wedding-game-api/errors"
 	"the-wedding-game-api/types"
 )
@@ -62,24 +61,25 @@ func CreateNewChallenge(createChallengeRequest types.CreateChallengeRequest) (Ch
 }
 
 func (challenge Challenge) Save() (Challenge, error) {
-	conn := db.GetConnection()
+	conn := GetConnection()
 	if err := conn.Create(&challenge).GetError(); err != nil {
 		return Challenge{}, err
 	}
 	return challenge, nil
 }
 
-func GetAllChallenges() ([]Challenge, error) {
-	conn := db.GetConnection()
-	var challenges []Challenge
-	if err := conn.Where("status = ?", types.ActiveChallenge).Find(&challenges).GetError(); err != nil {
-		return nil, err
+func GetAllChallenges(showInactive bool) ([]Challenge, error) {
+	conn := GetConnection()
+	challenges, err := conn.GetAllChallenges(showInactive)
+	if err != nil {
+		return []Challenge{}, err
 	}
+
 	return challenges, nil
 }
 
 func GetChallengeByID(id uint) (Challenge, error) {
-	conn := db.GetConnection()
+	conn := GetConnection()
 	var challenge Challenge
 	if err := conn.First(&challenge, id).GetError(); err != nil {
 		if apperrors.IsRecordNotFoundError(err) {

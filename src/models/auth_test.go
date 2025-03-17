@@ -4,8 +4,6 @@ import (
 	"errors"
 	"os"
 	"testing"
-	test "the-wedding-game-api/_tests"
-	"the-wedding-game-api/db"
 	apperrors "the-wedding-game-api/errors"
 	"the-wedding-game-api/types"
 )
@@ -34,7 +32,7 @@ func TestNewUser(t *testing.T) {
 }
 
 func TestDoesUserExist(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 	createTestUser(testUser)
 
 	exists, user, err := DoesUserExist(testUser.Username)
@@ -55,7 +53,7 @@ func TestDoesUserExist(t *testing.T) {
 }
 
 func TestDoesUserExistNotFound(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 
 	exists, _, err := DoesUserExist(testUserAdmin.Username)
 	if err != nil {
@@ -69,7 +67,7 @@ func TestDoesUserExistNotFound(t *testing.T) {
 }
 
 func TestDoesUserExistError(t *testing.T) {
-	mockDb := test.SetupMockDb()
+	mockDb := SetupMockDb()
 	createTestUser(testUser)
 
 	mockDb.Error = errors.New("test_error")
@@ -91,7 +89,7 @@ func TestDoesUserExistError(t *testing.T) {
 }
 
 func TestUserSave(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 
 	user := NewUser(testUser.Username)
 	savedUser, err := user.Save()
@@ -107,7 +105,7 @@ func TestUserSave(t *testing.T) {
 		t.Errorf("expected PLAYER but got %s", savedUser.Role)
 	}
 
-	mockDb := db.GetConnection()
+	mockDb := GetConnection()
 	var userFromDb User
 	err = mockDb.First(&userFromDb, savedUser.ID).GetError()
 	if err != nil {
@@ -123,7 +121,7 @@ func TestUserSave(t *testing.T) {
 }
 
 func TestUserSaveError(t *testing.T) {
-	mockDb := test.SetupMockDb()
+	mockDb := SetupMockDb()
 
 	user := NewUser(testUser.Username)
 	mockDb.Error = errors.New("test_error")
@@ -188,7 +186,7 @@ func TestValidatePasswordError(t *testing.T) {
 }
 
 func TestGetPoints(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 	createTestUser(testUser)
 
 	user := NewUser(testUser.Username)
@@ -204,7 +202,7 @@ func TestGetPoints(t *testing.T) {
 }
 
 func TestGetPointsError(t *testing.T) {
-	mockDb := test.SetupMockDb()
+	mockDb := SetupMockDb()
 	createTestUser(testUser)
 
 	mockDb.Error = errors.New("test_error")

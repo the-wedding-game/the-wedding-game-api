@@ -3,7 +3,6 @@ package models
 import (
 	"gorm.io/gorm"
 	"os"
-	"the-wedding-game-api/db"
 	apperrors "the-wedding-game-api/errors"
 	"the-wedding-game-api/types"
 )
@@ -23,7 +22,7 @@ func NewUser(username string) User {
 
 func DoesUserExist(username string) (bool, User, error) {
 	var user User
-	conn := db.GetConnection()
+	conn := GetConnection()
 	if err := conn.Where("username = ?", username).First(&user).GetError(); err != nil {
 		if apperrors.IsRecordNotFoundError(err) {
 			return false, User{}, nil
@@ -42,7 +41,7 @@ func ValidatePassword(password string) error {
 }
 
 func (user User) Save() (User, error) {
-	conn := db.GetConnection()
+	conn := GetConnection()
 	if err := conn.Create(&user).GetError(); err != nil {
 		return User{}, err
 	}
@@ -50,7 +49,7 @@ func (user User) Save() (User, error) {
 }
 
 func (user User) GetPoints() (uint, error) {
-	conn := db.GetConnection()
+	conn := GetConnection()
 	points, err := conn.GetPointsForUser(user.ID)
 	if err != nil {
 		return 0, err

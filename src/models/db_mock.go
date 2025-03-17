@@ -1,10 +1,9 @@
-package test
+package models
 
 import (
 	"errors"
 	"reflect"
 	"strings"
-	"the-wedding-game-api/db"
 	apperrors "the-wedding-game-api/errors"
 	"the-wedding-game-api/types"
 )
@@ -14,15 +13,15 @@ type MockDB struct {
 	Error error
 }
 
-func (m *MockDB) GetSession() db.DatabaseInterface {
+func (m *MockDB) GetSession() DatabaseInterface {
 	return m
 }
 
-func (m *MockDB) Where(_ interface{}, _ ...interface{}) db.DatabaseInterface {
+func (m *MockDB) Where(_ interface{}, _ ...interface{}) DatabaseInterface {
 	return m
 }
 
-func (m *MockDB) First(dest interface{}, _ ...interface{}) db.DatabaseInterface {
+func (m *MockDB) First(dest interface{}, _ ...interface{}) DatabaseInterface {
 	if len(m.items) == 0 {
 		destValue := reflect.ValueOf(dest)
 		m.Error = errors.New("record not found: " + destValue.Type().String())
@@ -45,12 +44,12 @@ func (m *MockDB) First(dest interface{}, _ ...interface{}) db.DatabaseInterface 
 	return m
 }
 
-func (m *MockDB) Create(value interface{}) db.DatabaseInterface {
+func (m *MockDB) Create(value interface{}) DatabaseInterface {
 	m.items = append(m.items, value)
 	return m
 }
 
-func (m *MockDB) Find(dest interface{}, _ ...interface{}) db.DatabaseInterface {
+func (m *MockDB) Find(dest interface{}, _ ...interface{}) DatabaseInterface {
 	destValue := reflect.ValueOf(dest)
 	if destValue.Kind() != reflect.Ptr || destValue.IsNil() {
 		m.Error = errors.New("dest must be a non-nil pointer")
@@ -74,6 +73,17 @@ func (m *MockDB) Find(dest interface{}, _ ...interface{}) db.DatabaseInterface {
 
 	destValue.Elem().Set(sliceValue)
 	return m
+}
+
+func (m *MockDB) GetAllChallenges(_ bool) ([]Challenge, error) {
+	var challenges []Challenge
+
+	m.Find(&challenges)
+	if m.Error != nil {
+		return nil, apperrors.NewDatabaseError(m.Error.Error())
+	}
+
+	return challenges, nil
 }
 
 func (m *MockDB) GetPointsForUser(_ uint) (uint, error) {

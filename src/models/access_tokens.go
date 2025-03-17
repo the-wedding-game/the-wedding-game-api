@@ -4,7 +4,6 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"strconv"
-	"the-wedding-game-api/db"
 	apperrors "the-wedding-game-api/errors"
 	"time"
 )
@@ -22,7 +21,7 @@ func generateAccessToken() string {
 }
 
 func LinkAccessTokenToUser(userId uint) (AccessToken, error) {
-	conn := db.GetConnection()
+	conn := GetConnection()
 	token := generateAccessToken()
 	expiresOn := time.Now().Add(24 * time.Hour).Unix()
 	accessToken := AccessToken{Token: token, UserID: userId, ExpiresOn: expiresOn}
@@ -33,7 +32,7 @@ func LinkAccessTokenToUser(userId uint) (AccessToken, error) {
 }
 
 func GetUserByAccessToken(token string) (User, error) {
-	conn := db.GetConnection()
+	conn := GetConnection()
 	var accessToken AccessToken
 	if err := conn.Where("token = ?", token).First(&accessToken).GetError(); err != nil {
 		if apperrors.IsRecordNotFoundError(err) {

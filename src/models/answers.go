@@ -3,7 +3,6 @@ package models
 import (
 	"gorm.io/gorm"
 	"strconv"
-	"the-wedding-game-api/db"
 	apperrors "the-wedding-game-api/errors"
 	"the-wedding-game-api/types"
 	"the-wedding-game-api/utils"
@@ -25,7 +24,7 @@ func NewAnswer(challengeId uint, value string) Answer {
 }
 
 func (answer Answer) Save() (Answer, error) {
-	conn := db.GetConnection()
+	conn := GetConnection()
 	if err := conn.Create(&answer).GetError(); err != nil {
 		return Answer{}, err
 	}
@@ -33,7 +32,7 @@ func (answer Answer) Save() (Answer, error) {
 }
 
 func VerifyAnswer(challengeId uint, answer string) (bool, error) {
-	conn := db.GetConnection()
+	conn := GetConnection()
 
 	var challengeModel Challenge
 	err := conn.Where("id = ?", challengeId).First(&challengeModel).GetError()
@@ -56,7 +55,7 @@ func VerifyAnswer(challengeId uint, answer string) (bool, error) {
 }
 
 func verifyAnswerForQuestion(challengeId uint, answer string) (bool, error) {
-	conn := db.GetConnection()
+	conn := GetConnection()
 
 	var answerModel Answer
 	err := conn.Where("challenge_id = ?", challengeId).First(&answerModel).GetError()

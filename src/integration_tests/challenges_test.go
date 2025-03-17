@@ -6,13 +6,12 @@ import (
 	"net/http"
 	"strconv"
 	"testing"
-	"the-wedding-game-api/db"
 	"the-wedding-game-api/models"
 	"the-wedding-game-api/types"
 )
 
 func TestGetChallengeByIdUploadPhoto(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	challenge := models.Challenge{
 		Name:        "test_challenge",
@@ -79,7 +78,7 @@ func TestGetChallengeByIdUploadPhoto(t *testing.T) {
 }
 
 func TestGetChallengeByIdAnswerQuestion(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	challenge := models.Challenge{
 		Name:        "test_challenge",
@@ -146,7 +145,7 @@ func TestGetChallengeByIdAnswerQuestion(t *testing.T) {
 }
 
 func TestGetChallengeByIdCompleted(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	challenge := models.Challenge{
 		Name:        "test_challenge",
@@ -220,7 +219,7 @@ func TestGetChallengeByIdCompleted(t *testing.T) {
 }
 
 func TestGetChallengeByWithNoAccessToken(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	challenge := models.Challenge{
 		Name:        "test_challenge",
@@ -248,7 +247,7 @@ func TestGetChallengeByWithNoAccessToken(t *testing.T) {
 }
 
 func TestGetChallengeByIdInvalidAccessToken(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	challenge := models.Challenge{
 		Name:        "test_challenge",
@@ -276,7 +275,7 @@ func TestGetChallengeByIdInvalidAccessToken(t *testing.T) {
 }
 
 func TestGetChallengeByIdNonExistentChallenge(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	_, accessToken, err := createUserAndGetAccessToken()
 	if err != nil {
@@ -296,7 +295,7 @@ func TestGetChallengeByIdNonExistentChallenge(t *testing.T) {
 }
 
 func TestGetChallengeByIdInvalidChallengeId(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	_, accessToken, err := createUserAndGetAccessToken()
 	if err != nil {
@@ -316,7 +315,7 @@ func TestGetChallengeByIdInvalidChallengeId(t *testing.T) {
 }
 
 func TestGetChallengeByIdWithInactiveChallenge(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	challenge := models.Challenge{
 		Name:        "test_challenge",
@@ -382,7 +381,7 @@ func TestGetChallengeByIdWithInactiveChallenge(t *testing.T) {
 }
 
 func TestCreateChallengeUploadPhoto(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	_, accessToken, err := createAdminAndGetAccessToken()
 	if err != nil {
@@ -437,7 +436,7 @@ func TestCreateChallengeUploadPhoto(t *testing.T) {
 }
 
 func TestCreateChallengeAnswerQuestion(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	_, accessToken, err := createAdminAndGetAccessToken()
 	if err != nil {
@@ -493,7 +492,7 @@ func TestCreateChallengeAnswerQuestion(t *testing.T) {
 }
 
 func TestCreateChallengeAsNotAdmin(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	_, accessToken, err := createUserAndGetAccessToken()
 	if err != nil {
@@ -520,7 +519,7 @@ func TestCreateChallengeAsNotAdmin(t *testing.T) {
 }
 
 func TestCreateChallengeWithInvalidAccessToken(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	challengeRequest := types.CreateChallengeRequest{
 		Name:        "test_challenge",
@@ -541,7 +540,7 @@ func TestCreateChallengeWithInvalidAccessToken(t *testing.T) {
 }
 
 func TestCreateChallengeWithMissingAccessToken(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	challengeRequest := types.CreateChallengeRequest{
 		Name:        "test_challenge",
@@ -562,7 +561,7 @@ func TestCreateChallengeWithMissingAccessToken(t *testing.T) {
 }
 
 func TestCreateChallengeWithMissingBody(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	_, accessToken, err := createAdminAndGetAccessToken()
 	if err != nil {
@@ -582,7 +581,7 @@ func TestCreateChallengeWithMissingBody(t *testing.T) {
 }
 
 func TestCreateChallengeWithEmptyBody(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	_, accessToken, err := createAdminAndGetAccessToken()
 	if err != nil {
@@ -602,7 +601,7 @@ func TestCreateChallengeWithEmptyBody(t *testing.T) {
 }
 
 func TestCreateChallengeWithEmptyName(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	_, accessToken, err := createAdminAndGetAccessToken()
 	if err != nil {
@@ -629,7 +628,7 @@ func TestCreateChallengeWithEmptyName(t *testing.T) {
 }
 
 func TestCreateChallengeWithEmptyDescription(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	_, accessToken, err := createAdminAndGetAccessToken()
 	if err != nil {
@@ -656,7 +655,7 @@ func TestCreateChallengeWithEmptyDescription(t *testing.T) {
 }
 
 func TestCreateChallengeWithEmptyPoints(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	_, accessToken, err := createAdminAndGetAccessToken()
 	if err != nil {
@@ -683,7 +682,7 @@ func TestCreateChallengeWithEmptyPoints(t *testing.T) {
 }
 
 func TestCreateChallengeWithZeroPoints(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	_, accessToken, err := createAdminAndGetAccessToken()
 	if err != nil {
@@ -710,7 +709,7 @@ func TestCreateChallengeWithZeroPoints(t *testing.T) {
 }
 
 func TestCreateChallengeWithNegativePoints(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	_, accessToken, err := createAdminAndGetAccessToken()
 	if err != nil {
@@ -737,7 +736,7 @@ func TestCreateChallengeWithNegativePoints(t *testing.T) {
 }
 
 func TestCreateChallengeWithEmptyImage(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	_, accessToken, err := createAdminAndGetAccessToken()
 	if err != nil {
@@ -764,7 +763,7 @@ func TestCreateChallengeWithEmptyImage(t *testing.T) {
 }
 
 func TestCreateChallengeWithInvalidImage(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	_, accessToken, err := createAdminAndGetAccessToken()
 	if err != nil {
@@ -791,7 +790,7 @@ func TestCreateChallengeWithInvalidImage(t *testing.T) {
 }
 
 func TestCreateChallengeWithInvalidType(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	_, accessToken, err := createAdminAndGetAccessToken()
 	if err != nil {
@@ -818,7 +817,7 @@ func TestCreateChallengeWithInvalidType(t *testing.T) {
 }
 
 func TestCreateChallengeWithEmptyType(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	_, accessToken, err := createAdminAndGetAccessToken()
 	if err != nil {
@@ -845,7 +844,7 @@ func TestCreateChallengeWithEmptyType(t *testing.T) {
 }
 
 func TestCreateChallengeWithEmptyAnswerForAnswerQuestionChallenge(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	_, accessToken, err := createAdminAndGetAccessToken()
 	if err != nil {
@@ -873,7 +872,7 @@ func TestCreateChallengeWithEmptyAnswerForAnswerQuestionChallenge(t *testing.T) 
 }
 
 func TestCreateChallengeWithoutAnswerForAnswerQuestionChallenge(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	_, accessToken, err := createAdminAndGetAccessToken()
 	if err != nil {
@@ -900,7 +899,7 @@ func TestCreateChallengeWithoutAnswerForAnswerQuestionChallenge(t *testing.T) {
 }
 
 func TestGetAllChallengesEmpty(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 	deleteAllChallenges()
 
 	_, accessToken, err := createUserAndGetAccessToken()
@@ -929,7 +928,7 @@ func TestGetAllChallengesEmpty(t *testing.T) {
 }
 
 func TestGetAllChallenges(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 	deleteAllChallenges()
 
 	challenge1 := models.Challenge{
@@ -982,6 +981,7 @@ func TestGetAllChallenges(t *testing.T) {
 
 	if len(response.Challenges) != 2 {
 		t.Errorf("Expected 2 challenges, got %v", len(response.Challenges))
+		return
 	}
 
 	if response.Challenges[0].Name != "test_challenge_1" {
@@ -1043,7 +1043,7 @@ func TestGetAllChallenges(t *testing.T) {
 }
 
 func TestGetAllChallengesWithInactiveChallenges(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 	deleteAllChallenges()
 
 	challenge1 := models.Challenge{
@@ -1128,7 +1128,7 @@ func TestGetAllChallengesWithInactiveChallenges(t *testing.T) {
 }
 
 func TestGetAllChallengesWithCompleted(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 	deleteAllChallenges()
 
 	challenge1 := models.Challenge{
@@ -1248,7 +1248,7 @@ func TestGetAllChallengesWithCompleted(t *testing.T) {
 }
 
 func TestGetAllChallengesWithoutAccessToken(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 	deleteAllChallenges()
 
 	statusCode, responseBody := makeRequest("GET", "/challenges", nil)
@@ -1263,7 +1263,7 @@ func TestGetAllChallengesWithoutAccessToken(t *testing.T) {
 }
 
 func TestGetAllChallengesWithInvalidAccessToken(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 	deleteAllChallenges()
 
 	statusCode, responseBody := makeRequestWithToken("GET", "/challenges", nil, "invalid_access_token")
@@ -1278,7 +1278,7 @@ func TestGetAllChallengesWithInvalidAccessToken(t *testing.T) {
 }
 
 func TestVerifyAnswerQuestionChallengeCorrectAnswer(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	_, accessToken, err := createUserAndGetAccessToken()
 	if err != nil {
@@ -1355,7 +1355,7 @@ func TestVerifyAnswerQuestionChallengeCorrectAnswer(t *testing.T) {
 }
 
 func TestVerifyAnswerQuestionChallengeIncorrectAnswer(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	_, accessToken, err := createUserAndGetAccessToken()
 	if err != nil {
@@ -1431,7 +1431,7 @@ func TestVerifyAnswerQuestionChallengeIncorrectAnswer(t *testing.T) {
 }
 
 func TestVerifyAnswerChallengeDoesNotExist(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	_, accessToken, err := createUserAndGetAccessToken()
 	if err != nil {
@@ -1455,7 +1455,7 @@ func TestVerifyAnswerChallengeDoesNotExist(t *testing.T) {
 }
 
 func TestVerifyAnswerChallengeUploadPhotoChallenge(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	_, accessToken, err := createUserAndGetAccessToken()
 	if err != nil {
@@ -1511,7 +1511,7 @@ func TestVerifyAnswerChallengeUploadPhotoChallenge(t *testing.T) {
 }
 
 func TestVerifyAnswerChallengeUploadPhotoChallengeInvalidUrl(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	_, accessToken, err := createUserAndGetAccessToken()
 	if err != nil {
@@ -1549,7 +1549,7 @@ func TestVerifyAnswerChallengeUploadPhotoChallengeInvalidUrl(t *testing.T) {
 }
 
 func TestVerifyAnswerChallengeAlreadyCompleted(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	_, accessToken, err := createUserAndGetAccessToken()
 	if err != nil {

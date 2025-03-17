@@ -3,7 +3,6 @@ package middleware
 import (
 	"testing"
 	test "the-wedding-game-api/_tests"
-	"the-wedding-game-api/db"
 	apperrors "the-wedding-game-api/errors"
 	"the-wedding-game-api/models"
 	"the-wedding-game-api/types"
@@ -15,18 +14,26 @@ var (
 	testUserAdmin   = models.User{Username: "test_username", Role: types.Admin}
 )
 
+func SetupMockDb() *models.MockDB {
+	mockDB := &models.MockDB{}
+	models.GetConnection = func() models.DatabaseInterface {
+		return mockDB
+	}
+	return mockDB
+}
+
 func createTestAccessToken(accessToken models.AccessToken) {
-	database := db.GetConnection()
+	database := models.GetConnection()
 	database.Create(&accessToken)
 }
 
 func createTestUser(user models.User) {
-	database := db.GetConnection()
+	database := models.GetConnection()
 	database.Create(&user)
 }
 
 func TestGetCurrentUser(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 	createTestAccessToken(testAccessToken)
 	createTestUser(testUser)
 
@@ -83,7 +90,7 @@ func TestGetCurrentUserInvalidAccessTokenFormat(t *testing.T) {
 }
 
 func TestCheckIsAdmin(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 	createTestAccessToken(testAccessToken)
 	createTestUser(testUserAdmin)
 
@@ -97,7 +104,7 @@ func TestCheckIsAdmin(t *testing.T) {
 }
 
 func TestCheckIsAdminNotAdmin(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 	createTestAccessToken(testAccessToken)
 	createTestUser(testUser)
 

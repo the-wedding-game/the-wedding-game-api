@@ -1,4 +1,4 @@
-package db
+package models
 
 import (
 	"errors"
@@ -49,6 +49,24 @@ func (p *database) Find(dest interface{}, where ...interface{}) DatabaseInterfac
 	p.initialConnection.Error = p.db.Error
 	p.db = p.initialConnection
 	return p
+}
+
+func (p *database) GetAllChallenges(showInactive bool) ([]Challenge, error) {
+	var challenges []Challenge
+	if showInactive {
+		p.db = p.db.Raw(`
+			SELECT ID, Name, Description, Points, Image, Type, Status
+			FROM challenges
+		`).Scan(&challenges)
+	} else {
+		p.db = p.db.Raw(`
+			SELECT ID, Name, Description, Points, Image, Type, Status
+			FROM challenges
+			WHERE status = ?
+		`, types.ActiveChallenge).Scan(&challenges)
+	}
+
+	return challenges, nil
 }
 
 func (p *database) GetPointsForUser(userId uint) (uint, error) {

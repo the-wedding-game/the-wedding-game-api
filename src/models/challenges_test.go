@@ -3,8 +3,6 @@ package models
 import (
 	"errors"
 	"testing"
-	test "the-wedding-game-api/_tests"
-	"the-wedding-game-api/db"
 	"the-wedding-game-api/types"
 )
 
@@ -51,7 +49,7 @@ func TestNewChallenge(t *testing.T) {
 }
 
 func TestCreateNewChallengeTypeUpload(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 
 	createChallengeRequest := types.CreateChallengeRequest{
 		Name:        testChallenge1.Name,
@@ -105,7 +103,7 @@ func TestCreateNewChallengeTypeUpload(t *testing.T) {
 	}
 
 	//Ensure an answer is not created for an upload photo challenge
-	mockDb := db.GetConnection()
+	mockDb := GetConnection()
 	var answer Answer
 	err = mockDb.First(&answer, "challenge_id = ?", challenge.ID).GetError()
 	if err == nil {
@@ -118,7 +116,7 @@ func TestCreateNewChallengeTypeUpload(t *testing.T) {
 }
 
 func TestCreateNewChallengeTypeAnswer(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 
 	createChallengeRequest := types.CreateChallengeRequest{
 		Name:        testChallenge1.Name,
@@ -173,7 +171,7 @@ func TestCreateNewChallengeTypeAnswer(t *testing.T) {
 	}
 
 	//Ensure answer is created in database
-	mockDb := db.GetConnection()
+	mockDb := GetConnection()
 	var answer Answer
 	err = mockDb.First(&answer).GetError()
 	if err != nil {
@@ -186,7 +184,7 @@ func TestCreateNewChallengeTypeAnswer(t *testing.T) {
 }
 
 func TestCreateNewChallengeError(t *testing.T) {
-	mockDb := test.SetupMockDb()
+	mockDb := SetupMockDb()
 
 	createChallengeRequest := types.CreateChallengeRequest{
 		Name:        testChallenge1.Name,
@@ -209,7 +207,7 @@ func TestCreateNewChallengeError(t *testing.T) {
 }
 
 func TestChallengeSave(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 
 	challenge := NewChallenge(testChallenge1.Name, testChallenge1.Description, testChallenge1.Points, testChallenge1.Image,
 		testChallenge1.Type, testChallenge1.Status)
@@ -264,7 +262,7 @@ func TestChallengeSave(t *testing.T) {
 }
 
 func TestChallengeSaveError(t *testing.T) {
-	mockDb := test.SetupMockDb()
+	mockDb := SetupMockDb()
 
 	challenge := NewChallenge(testChallenge1.Name, testChallenge1.Description, testChallenge1.Points, testChallenge1.Image,
 		testChallenge1.Type, testChallenge1.Status)
@@ -281,7 +279,7 @@ func TestChallengeSaveError(t *testing.T) {
 }
 
 func TestGetAllChallenges(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 
 	_, err := testChallenge1.Save()
 	if err != nil {
@@ -295,7 +293,7 @@ func TestGetAllChallenges(t *testing.T) {
 		return
 	}
 
-	challenges, err := GetAllChallenges()
+	challenges, err := GetAllChallenges(false)
 	if err != nil {
 		t.Errorf("expected nil but got %s", err.Error())
 		return
@@ -303,6 +301,7 @@ func TestGetAllChallenges(t *testing.T) {
 
 	if len(challenges) != 2 {
 		t.Errorf("expected 2 but got %d", len(challenges))
+		return
 	}
 	if challenges[0].Name != testChallenge1.Name {
 		t.Errorf("expected test_challenge1 but got %s", challenges[0].Name)
@@ -313,10 +312,10 @@ func TestGetAllChallenges(t *testing.T) {
 }
 
 func TestGetAllChallengesError(t *testing.T) {
-	mockDb := test.SetupMockDb()
+	mockDb := SetupMockDb()
 
 	mockDb.Error = errors.New("test_error")
-	_, err := GetAllChallenges()
+	_, err := GetAllChallenges(false)
 	if err == nil {
 		t.Errorf("expected error but got nil")
 		return
@@ -328,9 +327,9 @@ func TestGetAllChallengesError(t *testing.T) {
 }
 
 func TestGetAllChallengesEmpty(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 
-	challenges, err := GetAllChallenges()
+	challenges, err := GetAllChallenges(false)
 	if err != nil {
 		t.Errorf("expected nil but got %s", err.Error())
 		return
@@ -342,7 +341,7 @@ func TestGetAllChallengesEmpty(t *testing.T) {
 }
 
 func TestGetChallengeByIDTypeUpload(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 
 	_, err := testChallenge1.Save()
 	if err != nil {
@@ -377,7 +376,7 @@ func TestGetChallengeByIDTypeUpload(t *testing.T) {
 }
 
 func TestGetChallengeByIDTypeAnswer(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 
 	_, err := testChallenge2.Save()
 	if err != nil {
@@ -412,7 +411,7 @@ func TestGetChallengeByIDTypeAnswer(t *testing.T) {
 }
 
 func TestGetChallengeByIDError(t *testing.T) {
-	mockDb := test.SetupMockDb()
+	mockDb := SetupMockDb()
 	_, err := testChallenge1.Save()
 	if err != nil {
 		t.Errorf("expected nil but got %s", err.Error())
@@ -432,7 +431,7 @@ func TestGetChallengeByIDError(t *testing.T) {
 }
 
 func TestGetChallengeByIDNotFound(t *testing.T) {
-	test.SetupMockDb()
+	SetupMockDb()
 
 	_, err := GetChallengeByID(1)
 	if err == nil {

@@ -7,13 +7,12 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
-	"the-wedding-game-api/db"
 	"the-wedding-game-api/models"
 	"the-wedding-game-api/types"
 )
 
 func TestLogin(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	user := &models.User{
 		Username: "test_user_for_login",
@@ -58,7 +57,7 @@ func TestLogin(t *testing.T) {
 }
 
 func TestLoginWithAdminValidPassword(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 	user := models.User{
 		Username: "test_admin_for_login1",
 		Role:     types.Admin,
@@ -108,7 +107,7 @@ func TestLoginWithAdminValidPassword(t *testing.T) {
 }
 
 func TestLoginWithAdminInvalidPassword(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 	user := models.User{
 		Username: "test_admin_for_login2",
 		Role:     types.Admin,
@@ -182,7 +181,7 @@ func TestLoginWithEmptyUsername(t *testing.T) {
 }
 
 func TestLoginWithEmptyPassword(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	user := &models.User{
 		Username: "test_user_for_login_with_empty_password",
@@ -221,7 +220,7 @@ func TestLoginWithEmptyPassword(t *testing.T) {
 }
 
 func TestLoginWithNonexistentUser(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	loginRequest := types.LoginRequest{
 		Username: "nonexistent_user",
@@ -256,7 +255,7 @@ func TestLoginWithNonexistentUser(t *testing.T) {
 }
 
 func TestGetCurrentUser(t *testing.T) {
-	db.ResetConnection()
+	models.ResetConnection()
 
 	user := models.User{
 		Username: "test_user_for_get_current_user",
