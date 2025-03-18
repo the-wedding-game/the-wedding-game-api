@@ -16,20 +16,20 @@ func GetRouter() *gin.Engine {
 		})
 	})
 
-	router.GET("/challenges/:id", GetChallengeById)
-	router.POST("/challenges", CreateChallenge)
-	router.GET("/challenges", GetAllChallenges)
-	router.POST("/challenges/:id/verify", VerifyAnswer)
+	router.GET("/challenges/:id", middleware.IsLoggedIn, GetChallengeById)
+	router.POST("/challenges", middleware.IsAdmin, CreateChallenge)
+	router.GET("/challenges", middleware.IsLoggedIn, GetAllChallenges)
+	router.POST("/challenges/:id/verify", middleware.IsLoggedIn, VerifyAnswer)
 
 	router.POST("/auth/login", Login)
 	router.GET("/auth/current-user", GetCurrentUser)
 
-	router.GET("/points/me", GetCurrentUserPoints)
-	router.GET("/leaderboard", GetLeaderboard)
+	router.GET("/points/me", middleware.IsLoggedIn, GetCurrentUserPoints)
+	router.GET("/leaderboard", middleware.IsLoggedIn, GetLeaderboard)
 
-	router.GET("/gallery", GetGallery)
+	router.GET("/gallery", middleware.IsLoggedIn, GetGallery)
 
-	router.POST("/upload", HandleImageUpload)
+	router.POST("/upload", middleware.IsLoggedIn, HandleImageUpload)
 
 	router.GET("/admin/challenges", middleware.IsAdmin, GetAllChallengesAdmin)
 
