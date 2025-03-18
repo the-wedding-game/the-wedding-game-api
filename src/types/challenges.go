@@ -55,3 +55,17 @@ type VerifyAnswerRequest struct {
 type VerifyAnswerResponse struct {
 	Correct bool `json:"correct"`
 }
+
+type GetChallengesAdminResponse struct {
+	Challenges []GetChallengeAdminResponse `json:"challenges"`
+}
+
+type GetChallengeAdminResponse struct {
+	Id          uint            `json:"id"`
+	Name        string          `json:"name"`
+	Description string          `json:"description"`
+	Points      uint            `json:"points"`
+	Image       string          `json:"image"`
+	Status      ChallengeStatus `json:"status"`
+	Type        ChallengeType   `json:"type"`
+}

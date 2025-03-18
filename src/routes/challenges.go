@@ -120,6 +120,31 @@ func GetAllChallenges(c *gin.Context) {
 	return
 }
 
+func GetAllChallengesAdmin(c *gin.Context) {
+	challengesArr, err := models.GetAllChallenges(true)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	var response types.GetChallengesAdminResponse
+	response.Challenges = make([]types.GetChallengeAdminResponse, len(challengesArr))
+	for i, challenge := range challengesArr {
+		response.Challenges[i] = types.GetChallengeAdminResponse{
+			Id:          challenge.ID,
+			Name:        challenge.Name,
+			Description: challenge.Description,
+			Points:      challenge.Points,
+			Image:       challenge.Image,
+			Status:      challenge.Status,
+			Type:        challenge.Type,
+		}
+	}
+
+	c.IndentedJSON(http.StatusOK, response)
+	return
+}
+
 func VerifyAnswer(c *gin.Context) {
 	user, err := middleware.GetCurrentUser(c)
 	if err != nil {
