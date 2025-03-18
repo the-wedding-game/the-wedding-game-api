@@ -8,17 +8,18 @@ import (
 )
 
 func GetCurrentUser(c *gin.Context) (models.User, error) {
-	accessToken := c.GetHeader("Authorization")
-	if accessToken == "" {
-		return models.User{}, apperrors.NewAuthenticationError("access token is not provided")
+	user, exists := c.Get("user")
+
+	if exists {
+		return user.(models.User), nil
 	}
 
-	if len(accessToken) < 7 || accessToken[:7] != "Bearer " {
-		return models.User{}, apperrors.NewAuthenticationError("invalid access token format")
+	user, err := parseAuthorizationForUser(c)
+	if err != nil {
+		return models.User{}, err
 	}
 
-	accessToken = accessToken[7:]
-	return models.GetUserByAccessToken(accessToken)
+	return user.(models.User), nil
 }
 
 func CheckIsAdmin(c *gin.Context) error {
@@ -39,4 +40,34 @@ func IsAdmin(c *gin.Context) {
 		return
 	}
 	c.Next()
+}
+
+func IsLoggedIn(c *gin.Context) {
+	_, err := GetCurrentUser(c)
+	if err != nil {
+		handleError(c, err)
+	}
+
+	c.Next()
+}
+
+func parseAuthorizationForUser(c *gin.Context) (models.User, error) {
+	accessToken := c.GetHeader("Authorization")
+	if accessToken == "" {
+		return models.User{}, apperrors.NewAuthenticationError("access token is not provided")
+	}
+
+	if len(accessToken) < 7 || accessToken[:7] != "Bearer " {
+		return models.User{}, apperrors.NewAuthenticationError("invalid access token format")
+	}
+
+	accessToken = accessToken[7:]
+
+	user, err := models.GetUserByAccessToken(accessToken)
+	if err != nil {
+		return models.User{}, err
+	}
+
+	c.Set("user", user)
+	return user, nil
 }

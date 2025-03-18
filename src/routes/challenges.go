@@ -10,12 +10,6 @@ import (
 )
 
 func GetChallengeById(c *gin.Context) {
-	user, err := middleware.GetCurrentUser(c)
-	if err != nil {
-		_ = c.Error(err)
-		return
-	}
-
 	id, err := validators.ValidateGetChallengeByIdRequest(c)
 	if err != nil {
 		_ = c.Error(err)
@@ -23,6 +17,12 @@ func GetChallengeById(c *gin.Context) {
 	}
 
 	challenge, err := models.GetChallengeByID(id)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	user, err := middleware.GetCurrentUser(c)
 	if err != nil {
 		_ = c.Error(err)
 		return
@@ -50,11 +50,6 @@ func GetChallengeById(c *gin.Context) {
 }
 
 func CreateChallenge(c *gin.Context) {
-	if err := middleware.CheckIsAdmin(c); err != nil {
-		_ = c.Error(err)
-		return
-	}
-
 	challengeRequest, err := validators.ValidateCreateChallengeRequest(c)
 	if err != nil {
 		_ = c.Error(err)
@@ -81,13 +76,13 @@ func CreateChallenge(c *gin.Context) {
 }
 
 func GetAllChallenges(c *gin.Context) {
-	user, err := middleware.GetCurrentUser(c)
+	challengesArr, err := models.GetAllChallenges(false)
 	if err != nil {
 		_ = c.Error(err)
 		return
 	}
 
-	challengesArr, err := models.GetAllChallenges(false)
+	user, err := middleware.GetCurrentUser(c)
 	if err != nil {
 		_ = c.Error(err)
 		return
@@ -146,12 +141,6 @@ func GetAllChallengesAdmin(c *gin.Context) {
 }
 
 func VerifyAnswer(c *gin.Context) {
-	user, err := middleware.GetCurrentUser(c)
-	if err != nil {
-		_ = c.Error(err)
-		return
-	}
-
 	challengeId, verifyAnswerRequest, err := validators.ValidateVerifyAnswerRequest(c)
 	if err != nil {
 		_ = c.Error(err)
@@ -167,6 +156,12 @@ func VerifyAnswer(c *gin.Context) {
 	if !correct {
 		response := types.VerifyAnswerResponse{Correct: false}
 		c.IndentedJSON(http.StatusOK, response)
+		return
+	}
+
+	user, err := middleware.GetCurrentUser(c)
+	if err != nil {
+		_ = c.Error(err)
 		return
 	}
 

@@ -28,12 +28,6 @@ func GetCurrentUserPoints(c *gin.Context) {
 }
 
 func GetLeaderboard(c *gin.Context) {
-	_, err := middleware.GetCurrentUser(c)
-	if err != nil {
-		_ = c.Error(err)
-		return
-	}
-
 	leaderboard, err := models.GetLeaderboard()
 	if err != nil {
 		_ = c.Error(err)
