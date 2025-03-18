@@ -32,3 +32,11 @@ func CheckIsAdmin(c *gin.Context) error {
 	}
 	return nil
 }
+
+func IsAdmin(c *gin.Context) {
+	if err := CheckIsAdmin(c); err != nil {
+		handleError(c, err)
+		return
+	}
+	c.Next()
+}

@@ -1610,3 +1610,159 @@ func TestVerifyAnswerChallengeAlreadyCompleted(t *testing.T) {
 		t.Errorf("Expected correct true, got %v", response.Correct)
 	}
 }
+
+func TestGetAllChallengesAdmin(t *testing.T) {
+	models.ResetConnection()
+	deleteAllChallenges()
+
+	challenge1 := models.Challenge{
+		Name:        "test_challenge_1",
+		Description: "test_description_1",
+		Points:      10,
+		Image:       "test_image_1",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge1, err := challenge1.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	challenge2 := models.Challenge{
+		Name:        "test_challenge_2",
+		Description: "test_description_2",
+		Points:      20,
+		Image:       "test_image_2",
+		Type:        types.AnswerQuestionChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge2, err = challenge2.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	statusCode, body := makeRequestWithToken("GET", "/admin/challenges", nil, accessToken.Token)
+
+	if statusCode != 200 {
+		t.Errorf("Expected status code 200, got %v", statusCode)
+	}
+
+	var response types.GetChallengesAdminResponse
+	decoder := json.NewDecoder(bytes.NewReader([]byte(body)))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&response); err != nil {
+		t.Errorf("Error unmarshalling response: %v", err)
+		return
+	}
+
+	if len(response.Challenges) != 2 {
+		t.Errorf("Expected 2 challenges, got %v", len(response.Challenges))
+	}
+
+	if response.Challenges[0].Name != "test_challenge_1" {
+		t.Errorf("Expected name test_challenge_1, got %v", response.Challenges[0].Name)
+	}
+
+	if response.Challenges[0].Description != "test_description_1" {
+		t.Errorf("Expected description test_description_1, got %v", response.Challenges[0].Description)
+	}
+
+	if response.Challenges[0].Points != 10 {
+		t.Errorf("Expected points 10, got %v", response.Challenges[0].Points)
+	}
+
+	if response.Challenges[0].Image != "test_image_1" {
+		t.Errorf("Expected image test_image_1, got %v", response.Challenges[0].Image)
+	}
+
+	if response.Challenges[0].Type != types.UploadPhotoChallenge {
+		t.Errorf("Expected type UPLOAD_PHOTO, got %v", response.Challenges[0].Type)
+	}
+
+	if response.Challenges[0].Status != types.ActiveChallenge {
+		t.Errorf("Expected status ACTIVE, got %v", response.Challenges[0].Status)
+	}
+
+	if response.Challenges[1].Name != "test_challenge_2" {
+		t.Errorf("Expected name test_challenge_2, got %v", response.Challenges[1].Name)
+	}
+
+	if response.Challenges[1].Description != "test_description_2" {
+		t.Errorf("Expected description test_description_2, got %v", response.Challenges[1].Description)
+	}
+
+	if response.Challenges[1].Points != 20 {
+		t.Errorf("Expected points 20, got %v", response.Challenges[1].Points)
+	}
+
+	if response.Challenges[1].Image != "test_image_2" {
+		t.Errorf("Expected image test_image_2, got %v", response.Challenges[1].Image)
+	}
+
+	if response.Challenges[1].Type != types.AnswerQuestionChallenge {
+		t.Errorf("Expected type ANSWER_QUESTION, got %v", response.Challenges[1].Type)
+	}
+
+	if response.Challenges[1].Status != types.ActiveChallenge {
+		t.Errorf("Expected status ACTIVE, got %v", response.Challenges[1].Status)
+	}
+}
+
+func TestGetAllChallengesAdminNotAdmin(t *testing.T) {
+	models.ResetConnection()
+	deleteAllChallenges()
+
+	_, accessToken, err := createUserAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	statusCode, responseBody := makeRequestWithToken("GET", "/admin/challenges", nil, accessToken.Token)
+
+	if statusCode != http.StatusForbidden {
+		t.Errorf("Expected status code 403, got %v", statusCode)
+	}
+
+	if responseBody != "{\"message\":\"access denied\",\"status\":\"error\"}" {
+		t.Errorf("Expected response Forbidden, got %v", responseBody)
+	}
+}
+
+func TestGetAllChallengesAdminWithoutAccessToken(t *testing.T) {
+	models.ResetConnection()
+	deleteAllChallenges()
+
+	statusCode, responseBody := makeRequest("GET", "/admin/challenges", nil)
+
+	if statusCode != http.StatusUnauthorized {
+		t.Errorf("Expected status code 401, got %v", statusCode)
+	}
+
+	if responseBody != "{\"message\":\"access token is not provided\",\"status\":\"error\"}" {
+		t.Errorf("Expected response Unauthorized, got %v", responseBody)
+	}
+}
+
+func TestGetAllChallengesAdminWithInvalidAccessToken(t *testing.T) {
+	models.ResetConnection()
+	deleteAllChallenges()
+
+	statusCode, responseBody := makeRequestWithToken("GET", "/admin/challenges", nil, "invalid_access_token")
+
+	if statusCode != http.StatusForbidden {
+		t.Errorf("Expected status code 403, got %v", statusCode)
+	}
+
+	if responseBody != "{\"message\":\"access denied\",\"status\":\"error\"}" {
+		t.Errorf("Expected response Unauthorized, got %v", responseBody)
+	}
+}

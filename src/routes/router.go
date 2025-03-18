@@ -31,5 +31,7 @@ func GetRouter() *gin.Engine {
 
 	router.POST("/upload", HandleImageUpload)
 
+	router.GET("/admin/challenges", middleware.IsAdmin, GetAllChallengesAdmin)
+
 	return router
 }
