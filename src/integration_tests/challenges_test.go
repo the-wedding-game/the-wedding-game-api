@@ -1766,3 +1766,1055 @@ func TestGetAllChallengesAdminWithInvalidAccessToken(t *testing.T) {
 		t.Errorf("Expected response Unauthorized, got %v", responseBody)
 	}
 }
+
+func TestUpdateChallenge(t *testing.T) {
+	models.ResetConnection()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err = challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	updateChallengeRequest := types.UpdateChallengeRequest{
+		Name:        "updated_name",
+		Description: "updated_description",
+		Points:      20,
+		Image:       "https://example.com/image.jpg",
+		Type:        types.AnswerQuestionChallenge,
+		Status:      types.InactiveChallenge,
+		Answer:      "test_answer",
+	}
+
+	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/"+strconv.Itoa(int(challenge.ID)), updateChallengeRequest, accessToken.Token)
+
+	if statusCode != http.StatusOK {
+		t.Errorf("Expected status code 200, got %v", statusCode)
+		return
+	}
+
+	var response types.UpdateChallengeResponse
+	decoder := json.NewDecoder(bytes.NewReader([]byte(responseBody)))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&response); err != nil {
+		t.Errorf("Error unmarshalling response: %v", err)
+		return
+	}
+
+	if response.Name != "updated_name" {
+		t.Errorf("Expected name updated_name, got %v", response.Name)
+	}
+
+	if response.Description != "updated_description" {
+		t.Errorf("Expected description updated_description, got %v", response.Description)
+	}
+
+	if response.Points != 20 {
+		t.Errorf("Expected points 20, got %v", response.Points)
+	}
+
+	if response.Image != "https://example.com/image.jpg" {
+		t.Errorf("Expected image updated_image, got %v", response.Image)
+	}
+
+	if response.Type != types.AnswerQuestionChallenge {
+		t.Errorf("Expected type ANSWER_QUESTION, got %v", response.Type)
+	}
+
+	if response.Status != types.InactiveChallenge {
+		t.Errorf("Expected status INACTIVE, got %v", response.Status)
+	}
+
+	verify, err := models.VerifyAnswer(challenge.ID, "test_answer")
+	if err != nil {
+		t.Errorf("Error verifying answer: %v", err)
+		return
+	}
+	if !verify {
+		t.Errorf("Expected answer to be verified")
+	}
+
+}
+
+func TestUpdateChallengeWithInvalidId(t *testing.T) {
+	models.ResetConnection()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	updateChallengeRequest := types.UpdateChallengeRequest{
+		Name:        "updated_name",
+		Description: "updated_description",
+		Points:      20,
+		Image:       "https://example.com/image.jpg",
+		Type:        types.AnswerQuestionChallenge,
+		Status:      types.InactiveChallenge,
+		Answer:      "test_answer",
+	}
+
+	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/sdds", updateChallengeRequest, accessToken.Token)
+
+	if statusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code 400, got %v", statusCode)
+	}
+
+	if responseBody != "{\"message\":\"invalid challenge id\",\"status\":\"error\"}" {
+		t.Errorf("Expected response Bad Request, got %v", responseBody)
+	}
+}
+
+func TestUpdateChallengeDoesNotExist(t *testing.T) {
+	models.ResetConnection()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	updateChallengeRequest := types.UpdateChallengeRequest{
+		Name:        "updated_name",
+		Description: "updated_description",
+		Points:      20,
+		Image:       "https://example.com/image.jpg",
+		Type:        types.AnswerQuestionChallenge,
+		Status:      types.InactiveChallenge,
+		Answer:      "test_answer",
+	}
+
+	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/99999", updateChallengeRequest, accessToken.Token)
+
+	if statusCode != http.StatusNotFound {
+		t.Errorf("Expected status code 404, got %v", statusCode)
+	}
+
+	if responseBody != "{\"message\":\"Challenge with key 99999 not found.\",\"status\":\"error\"}" {
+		t.Errorf("Expected response Not Found, got %v", responseBody)
+	}
+}
+
+func TestUpdateChallengeWithMissingName(t *testing.T) {
+	models.ResetConnection()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	updateChallengeRequest := map[string]interface{}{
+		"description": "updated_description",
+		"points":      20,
+		"image":       "https://example.com/image.jpg",
+		"type":        types.AnswerQuestionChallenge,
+		"answer":      "test_answer",
+		"status":      types.InactiveChallenge,
+	}
+	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/1", updateChallengeRequest, accessToken.Token)
+
+	if statusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code 400, got %v", statusCode)
+	}
+
+	if responseBody != "{\"message\":\"Key: 'UpdateChallengeRequest.Name' Error:Field validation for 'Name' failed on the 'required' tag\",\"status\":\"error\"}" {
+		t.Errorf("Expected response Bad Request, got %v", responseBody)
+	}
+}
+
+func TestUpdateChallengeWithMissingDescription(t *testing.T) {
+	models.ResetConnection()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	updateChallengeRequest := map[string]interface{}{
+		"name":   "updated_name",
+		"points": 20,
+		"image":  "https://example.com/image.jpg",
+		"type":   types.AnswerQuestionChallenge,
+		"answer": "test_answer",
+		"status": types.InactiveChallenge,
+	}
+	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/1", updateChallengeRequest, accessToken.Token)
+
+	if statusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code 400, got %v", statusCode)
+	}
+
+	if responseBody != "{\"message\":\"Key: 'UpdateChallengeRequest.Description' Error:Field validation for 'Description' failed on the 'required' tag\",\"status\":\"error\"}" {
+		t.Errorf("Expected response Bad Request, got %v", responseBody)
+	}
+}
+
+func TestUpdateChallengeWithMissingPoints(t *testing.T) {
+	models.ResetConnection()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	updateChallengeRequest := map[string]interface{}{
+		"name":        "updated_name",
+		"description": "updated_description",
+		"image":       "https://example.com/image.jpg",
+		"type":        types.AnswerQuestionChallenge,
+		"answer":      "test_answer",
+		"status":      types.InactiveChallenge,
+	}
+	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/1", updateChallengeRequest, accessToken.Token)
+
+	if statusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code 400, got %v", statusCode)
+	}
+
+	if responseBody != "{\"message\":\"Key: 'UpdateChallengeRequest.Points' Error:Field validation for 'Points' failed on the 'required' tag\",\"status\":\"error\"}" {
+		t.Errorf("Expected response Bad Request, got %v", responseBody)
+	}
+}
+
+func TestUpdateChallengeWithMissingImage(t *testing.T) {
+	models.ResetConnection()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	updateChallengeRequest := map[string]interface{}{
+		"name":        "updated_name",
+		"description": "updated_description",
+		"points":      20,
+		"type":        types.AnswerQuestionChallenge,
+		"answer":      "test_answer",
+		"status":      types.InactiveChallenge,
+	}
+	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/1", updateChallengeRequest, accessToken.Token)
+
+	if statusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code 400, got %v", statusCode)
+	}
+
+	if responseBody != "{\"message\":\"Key: 'UpdateChallengeRequest.Image' Error:Field validation for 'Image' failed on the 'required' tag\",\"status\":\"error\"}" {
+		t.Errorf("Expected response Bad Request, got %v", responseBody)
+	}
+}
+
+func TestUpdateChallengeWithMissingType(t *testing.T) {
+	models.ResetConnection()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	updateChallengeRequest := map[string]interface{}{
+		"name":        "updated_name",
+		"description": "updated_description",
+		"points":      20,
+		"image":       "https://example.com/image.jpg",
+		"answer":      "test_answer",
+		"status":      types.InactiveChallenge,
+	}
+	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/1", updateChallengeRequest, accessToken.Token)
+
+	if statusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code 400, got %v", statusCode)
+	}
+
+	if responseBody != "{\"message\":\"Key: 'UpdateChallengeRequest.Type' Error:Field validation for 'Type' failed on the 'required' tag\",\"status\":\"error\"}" {
+		t.Errorf("Expected response Bad Request, got %v", responseBody)
+	}
+}
+
+func TestUpdateChallengeWithMissingStatus(t *testing.T) {
+	models.ResetConnection()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	updateChallengeRequest := map[string]interface{}{
+		"name":        "updated_name",
+		"description": "updated_description",
+		"points":      20,
+		"image":       "https://example.com/image.jpg",
+		"type":        types.AnswerQuestionChallenge,
+		"answer":      "test_answer",
+	}
+	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/1", updateChallengeRequest, accessToken.Token)
+
+	if statusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code 400, got %v", statusCode)
+	}
+
+	if responseBody != "{\"message\":\"Key: 'UpdateChallengeRequest.Status' Error:Field validation for 'Status' failed on the 'required' tag\",\"status\":\"error\"}" {
+		t.Errorf("Expected response Bad Request, got %v", responseBody)
+	}
+}
+
+func TestUpdateChallengeWithInvalidType(t *testing.T) {
+	models.ResetConnection()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	updateChallengeRequest := map[string]interface{}{
+		"name":        "updated_name",
+		"description": "updated_description",
+		"points":      20,
+		"image":       "https://example.com/image.jpg",
+		"type":        "invalid_type",
+		"status":      types.InactiveChallenge,
+		"answer":      "test_answer",
+	}
+	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/1", updateChallengeRequest, accessToken.Token)
+
+	if statusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code 400, got %v", statusCode)
+	}
+
+	if responseBody != "{\"message\":\"Key: 'UpdateChallengeRequest.Type' Error:Field validation for 'Type' failed on the 'oneof' tag\",\"status\":\"error\"}" {
+		t.Errorf("Expected response Bad Request, got %v", responseBody)
+	}
+}
+
+func TestUpdateChallengeWithInvalidStatus(t *testing.T) {
+	models.ResetConnection()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	updateChallengeRequest := map[string]interface{}{
+		"name":        "updated_name",
+		"description": "updated_description",
+		"points":      20,
+		"image":       "https://example.com/image.jpg",
+		"type":        types.AnswerQuestionChallenge,
+		"status":      "invalid_status",
+		"answer":      "test_answer",
+	}
+	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/1", updateChallengeRequest, accessToken.Token)
+
+	if statusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code 400, got %v", statusCode)
+	}
+
+	if responseBody != "{\"message\":\"Key: 'UpdateChallengeRequest.Status' Error:Field validation for 'Status' failed on the 'oneof' tag\",\"status\":\"error\"}" {
+		t.Errorf("Expected response Bad Request, got %v", responseBody)
+	}
+}
+
+func TestUpdateChallengeWithMissingAnswerQuestionChallengeAnswer(t *testing.T) {
+	models.ResetConnection()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	updateChallengeRequest := map[string]interface{}{
+		"name":        "updated_name",
+		"description": "updated_description",
+		"points":      20,
+		"image":       "https://example.com/image.jpg",
+		"type":        types.AnswerQuestionChallenge,
+		"status":      types.InactiveChallenge,
+	}
+	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/1", updateChallengeRequest, accessToken.Token)
+
+	if statusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code 400, got %v", statusCode)
+	}
+
+	if responseBody != "{\"message\":\"Key: 'UpdateChallengeRequest.Answer' Error:Field validation for 'Answer' failed on the 'required_if' tag\",\"status\":\"error\"}" {
+		t.Errorf("Expected response Bad Request, got %v", responseBody)
+	}
+}
+
+func TestUpdateChallengeWithEmptyName(t *testing.T) {
+	models.ResetConnection()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	updateChallengeRequest := map[string]interface{}{
+		"name":        "",
+		"description": "updated_description",
+		"points":      20,
+		"image":       "https://example.com/image.jpg",
+		"type":        types.AnswerQuestionChallenge,
+		"status":      types.InactiveChallenge,
+		"answer":      "test_answer",
+	}
+	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/1", updateChallengeRequest, accessToken.Token)
+
+	if statusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code 400, got %v", statusCode)
+	}
+
+	if responseBody != "{\"message\":\"Key: 'UpdateChallengeRequest.Name' Error:Field validation for 'Name' failed on the 'required' tag\",\"status\":\"error\"}" {
+		t.Errorf("Expected response Bad Request, got %v", responseBody)
+	}
+}
+
+func TestUpdateChallengeWithEmptyDescription(t *testing.T) {
+	models.ResetConnection()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	updateChallengeRequest := map[string]interface{}{
+		"name":        "updated_name",
+		"description": "",
+		"points":      20,
+		"image":       "https://example.com/image.jpg",
+		"type":        types.AnswerQuestionChallenge,
+		"status":      types.InactiveChallenge,
+		"answer":      "test_answer",
+	}
+	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/1", updateChallengeRequest, accessToken.Token)
+
+	if statusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code 400, got %v", statusCode)
+	}
+
+	if responseBody != "{\"message\":\"Key: 'UpdateChallengeRequest.Description' Error:Field validation for 'Description' failed on the 'required' tag\",\"status\":\"error\"}" {
+		t.Errorf("Expected response Bad Request, got %v", responseBody)
+	}
+}
+
+func TestUpdateChallengeWithEmptyImage(t *testing.T) {
+	models.ResetConnection()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	updateChallengeRequest := map[string]interface{}{
+		"name":        "updated_name",
+		"description": "updated_description",
+		"points":      20,
+		"image":       "",
+		"type":        types.AnswerQuestionChallenge,
+		"status":      types.InactiveChallenge,
+		"answer":      "test_answer",
+	}
+	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/1", updateChallengeRequest, accessToken.Token)
+
+	if statusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code 400, got %v", statusCode)
+	}
+
+	if responseBody != "{\"message\":\"Key: 'UpdateChallengeRequest.Image' Error:Field validation for 'Image' failed on the 'required' tag\",\"status\":\"error\"}" {
+		t.Errorf("Expected response Bad Request, got %v", responseBody)
+	}
+}
+
+func TestUpdateChallengeWithEmptyAnswerQuestionChallengeAnswer(t *testing.T) {
+	models.ResetConnection()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	updateChallengeRequest := map[string]interface{}{
+		"name":        "updated_name",
+		"description": "updated_description",
+		"points":      20,
+		"image":       "https://example.com/image.jpg",
+		"type":        types.AnswerQuestionChallenge,
+		"status":      types.InactiveChallenge,
+		"answer":      "",
+	}
+	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/1", updateChallengeRequest, accessToken.Token)
+
+	if statusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code 400, got %v", statusCode)
+	}
+
+	if responseBody != "{\"message\":\"Key: 'UpdateChallengeRequest.Answer' Error:Field validation for 'Answer' failed on the 'required_if' tag\",\"status\":\"error\"}" {
+		t.Errorf("Expected response Bad Request, got %v", responseBody)
+	}
+}
+
+func TestUpdateChallengeWithInvalidImage(t *testing.T) {
+	models.ResetConnection()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	updateChallengeRequest := map[string]interface{}{
+		"name":        "updated_name",
+		"description": "updated_description",
+		"points":      20,
+		"image":       "invalid_image",
+		"type":        types.AnswerQuestionChallenge,
+		"status":      types.InactiveChallenge,
+		"answer":      "test_answer",
+	}
+	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/1", updateChallengeRequest, accessToken.Token)
+
+	if statusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code 400, got %v", statusCode)
+	}
+
+	if responseBody != "{\"message\":\"Key: 'UpdateChallengeRequest.Image' Error:Field validation for 'Image' failed on the 'url' tag\",\"status\":\"error\"}" {
+		t.Errorf("Expected response Bad Request, got %v", responseBody)
+	}
+}
+
+func TestUpdateChallengeHasSubmissions(t *testing.T) {
+	models.ResetConnection()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err = challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	submission := models.NewSubmission(accessToken.UserID, challenge.ID, "test_answer")
+	_, err = submission.Save()
+	if err != nil {
+		t.Errorf("Error saving submission: %v", err)
+		return
+	}
+
+	updateChallengeRequest := types.UpdateChallengeRequest{
+		Name:        "updated_name",
+		Description: "updated_description",
+		Points:      20,
+		Image:       "https://example.com/image.jpg",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.InactiveChallenge,
+	}
+
+	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/"+strconv.Itoa(int(challenge.ID)), updateChallengeRequest, accessToken.Token)
+
+	if statusCode != http.StatusOK {
+		t.Errorf("Expected status code 200, got %v", statusCode)
+	}
+
+	var response types.UpdateChallengeResponse
+	decoder := json.NewDecoder(bytes.NewReader([]byte(responseBody)))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&response); err != nil {
+		t.Errorf("Error unmarshalling response: %v", err)
+		return
+	}
+
+	expectedResponse := types.UpdateChallengeResponse{
+		Id:          challenge.ID,
+		Name:        "updated_name",
+		Description: "updated_description",
+		Points:      20,
+		Image:       "https://example.com/image.jpg",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.InactiveChallenge,
+	}
+	if response != expectedResponse {
+		t.Errorf("Expected response %v, got %v", expectedResponse, response)
+	}
+}
+
+func TestUpdateChallengeUpdateTypeButHasSubmissions1(t *testing.T) {
+	models.ResetConnection()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err = challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	submission := models.NewSubmission(accessToken.UserID, challenge.ID, "test_answer")
+	_, err = submission.Save()
+	if err != nil {
+		t.Errorf("Error saving submission: %v", err)
+		return
+	}
+
+	updateChallengeRequest := types.UpdateChallengeRequest{
+		Name:        "updated_name",
+		Description: "updated_description",
+		Points:      20,
+		Image:       "https://example.com/image.jpg",
+		Type:        types.AnswerQuestionChallenge,
+		Status:      types.InactiveChallenge,
+		Answer:      "test_answer",
+	}
+
+	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/"+strconv.Itoa(int(challenge.ID)), updateChallengeRequest, accessToken.Token)
+
+	if statusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code 400, got %v", statusCode)
+	}
+
+	if responseBody != "{\"message\":\"Cannot update challenge type if submissions exist\",\"status\":\"error\"}" {
+		t.Errorf("Expected response Bad Request, got %v", responseBody)
+	}
+}
+
+func TestUpdateChallengeUpdateTypeButHasSubmissions2(t *testing.T) {
+	models.ResetConnection()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.AnswerQuestionChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err = challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	submission := models.NewSubmission(accessToken.UserID, challenge.ID, "test_answer")
+	_, err = submission.Save()
+	if err != nil {
+		t.Errorf("Error saving submission: %v", err)
+		return
+	}
+
+	updateChallengeRequest := types.UpdateChallengeRequest{
+		Name:        "updated_name",
+		Description: "updated_description",
+		Points:      20,
+		Image:       "https://example.com/image.jpg",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.InactiveChallenge,
+	}
+
+	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/"+strconv.Itoa(int(challenge.ID)), updateChallengeRequest, accessToken.Token)
+
+	if statusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code 400, got %v", statusCode)
+	}
+
+	if responseBody != "{\"message\":\"Cannot update challenge type if submissions exist\",\"status\":\"error\"}" {
+		t.Errorf("Expected response Bad Request, got %v", responseBody)
+	}
+}
+
+func TestUpdateChallengeUpdateAnswerButSubmissionsExistAnswerDoesNotExist(t *testing.T) {
+	models.ResetConnection()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.AnswerQuestionChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err = challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	submission := models.NewSubmission(accessToken.UserID, challenge.ID, "test_answer")
+	_, err = submission.Save()
+	if err != nil {
+		t.Errorf("Error saving submission: %v", err)
+		return
+	}
+
+	updateChallengeRequest := types.UpdateChallengeRequest{
+		Name:        "updated_name",
+		Description: "updated_description",
+		Points:      20,
+		Image:       "https://example.com/image.jpg",
+		Type:        types.AnswerQuestionChallenge,
+		Status:      types.InactiveChallenge,
+		Answer:      "updated_answer",
+	}
+
+	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/"+strconv.Itoa(int(challenge.ID)), updateChallengeRequest, accessToken.Token)
+
+	if statusCode != http.StatusNotFound {
+		t.Errorf("Expected status code 404, got %v", statusCode)
+	}
+
+	if responseBody != "{\"message\":\"Answer with Challenge with key 26 not found.\",\"status\":\"error\"}" {
+		t.Errorf("Expected response Bad Request, got %v", responseBody)
+	}
+}
+
+func TestUpdateChallengeUpdateAnswerButSubmissionsExistAnswerExists(t *testing.T) {
+	models.ResetConnection()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.AnswerQuestionChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err = challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	submission := models.NewSubmission(accessToken.UserID, challenge.ID, "test_answer")
+	_, err = submission.Save()
+	if err != nil {
+		t.Errorf("Error saving submission: %v", err)
+		return
+	}
+
+	answer := models.Answer{
+		ChallengeID: challenge.ID,
+		Value:       "test_answer",
+	}
+	answer, err = answer.Save()
+	if err != nil {
+		t.Errorf("Error saving answer: %v", err)
+		return
+	}
+
+	updateChallengeRequest := types.UpdateChallengeRequest{
+		Name:        "updated_name",
+		Description: "updated_description",
+		Points:      20,
+		Image:       "https://example.com/image.jpg",
+		Type:        types.AnswerQuestionChallenge,
+		Status:      types.InactiveChallenge,
+		Answer:      "updated_answer",
+	}
+
+	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/"+strconv.Itoa(int(challenge.ID)), updateChallengeRequest, accessToken.Token)
+	if statusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code 400, got %v", statusCode)
+	}
+
+	expectedResponse := "{\"message\":\"Cannot update answer if submissions exist\",\"status\":\"error\"}"
+	if responseBody != expectedResponse {
+		t.Errorf("Expected response %v, got %v", expectedResponse, responseBody)
+	}
+}
+
+func TestUpdateChallengeUpdateAnswerButSubmissionsExistAnswerExistsAndIsTheSame(t *testing.T) {
+	models.ResetConnection()
+	deleteAllChallenges()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.AnswerQuestionChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err = challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	submission := models.NewSubmission(accessToken.UserID, challenge.ID, "test_answer")
+	_, err = submission.Save()
+	if err != nil {
+		t.Errorf("Error saving submission: %v", err)
+		return
+	}
+
+	answer := models.Answer{
+		ChallengeID: challenge.ID,
+		Value:       "test_answer",
+	}
+	answer, err = answer.Save()
+	if err != nil {
+		t.Errorf("Error saving answer: %v", err)
+		return
+	}
+
+	updateChallengeRequest := types.UpdateChallengeRequest{
+		Name:        "updated_name",
+		Description: "updated_description",
+		Points:      20,
+		Image:       "https://example.com/image.jpg",
+		Type:        types.AnswerQuestionChallenge,
+		Status:      types.InactiveChallenge,
+		Answer:      "test_answer",
+	}
+
+	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/"+strconv.Itoa(int(challenge.ID)), updateChallengeRequest, accessToken.Token)
+	if statusCode != http.StatusOK {
+		t.Errorf("Expected status code 200, got %v", statusCode)
+	}
+
+	expectedResponse := types.UpdateChallengeResponse{
+		Id:          challenge.ID,
+		Name:        "updated_name",
+		Description: "updated_description",
+		Points:      20,
+		Image:       "https://example.com/image.jpg",
+		Type:        types.AnswerQuestionChallenge,
+		Status:      types.InactiveChallenge,
+	}
+	var response types.UpdateChallengeResponse
+	decoder := json.NewDecoder(bytes.NewReader([]byte(responseBody)))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&response); err != nil {
+		t.Errorf("Error unmarshalling response: %v", err)
+		return
+	}
+
+	if response != expectedResponse {
+		t.Errorf("Expected response %v, got %v", expectedResponse, response)
+	}
+
+	//Check if answer is saved
+	verify, err := models.VerifyAnswer(challenge.ID, "test_answer")
+	if err != nil {
+		t.Errorf("Error verifying answer: %v", err)
+		return
+	}
+	if !verify {
+		t.Errorf("Expected answer to be verified")
+	}
+}
+
+func TestUpdateChallengeUploadToAnswer(t *testing.T) {
+	models.ResetConnection()
+	deleteAllChallenges()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err = challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	updateChallengeRequest := types.UpdateChallengeRequest{
+		Name:        "updated_name",
+		Description: "updated_description",
+		Points:      20,
+		Image:       "https://example.com/image.jpg",
+		Type:        types.AnswerQuestionChallenge,
+		Status:      types.InactiveChallenge,
+		Answer:      "test_answer",
+	}
+
+	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/"+strconv.Itoa(int(challenge.ID)), updateChallengeRequest, accessToken.Token)
+	if statusCode != http.StatusOK {
+		t.Errorf("Expected status code 200, got %v", statusCode)
+	}
+
+	expectedResponse := types.UpdateChallengeResponse{
+		Id:          challenge.ID,
+		Name:        "updated_name",
+		Description: "updated_description",
+		Points:      20,
+		Image:       "https://example.com/image.jpg",
+		Type:        types.AnswerQuestionChallenge,
+		Status:      types.InactiveChallenge,
+	}
+	var response types.UpdateChallengeResponse
+	decoder := json.NewDecoder(bytes.NewReader([]byte(responseBody)))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&response); err != nil {
+		t.Errorf("Error unmarshalling response: %v", err)
+		return
+	}
+
+	if response != expectedResponse {
+		t.Errorf("Expected response %v, got %v", expectedResponse, response)
+	}
+
+	//Check if answer is created
+	verify, err := models.VerifyAnswer(challenge.ID, "test_answer")
+	if err != nil {
+		t.Errorf("Error verifying answer: %v", err)
+		return
+	}
+	if !verify {
+		t.Errorf("Expected answer to be verified")
+	}
+}
+
+func TestUpdateChallengeAnswerToUpload(t *testing.T) {
+	models.ResetConnection()
+	deleteAllChallenges()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.AnswerQuestionChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err = challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	answer := models.Answer{
+		ChallengeID: challenge.ID,
+		Value:       "test_answer",
+	}
+	answer, err = answer.Save()
+	if err != nil {
+		t.Errorf("Error saving answer: %v", err)
+		return
+	}
+
+	updateChallengeRequest := types.UpdateChallengeRequest{
+		Name:        "updated_name",
+		Description: "updated_description",
+		Points:      20,
+		Image:       "https://example.com/image.jpg",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.InactiveChallenge,
+	}
+
+	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/"+strconv.Itoa(int(challenge.ID)), updateChallengeRequest, accessToken.Token)
+	if statusCode != http.StatusOK {
+		t.Errorf("Expected status code 200, got %v", statusCode)
+	}
+
+	expectedResponse := types.UpdateChallengeResponse{
+		Id:          challenge.ID,
+		Name:        "updated_name",
+		Description: "updated_description",
+		Points:      20,
+		Image:       "https://example.com/image.jpg",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.InactiveChallenge,
+	}
+	var response types.UpdateChallengeResponse
+	decoder := json.NewDecoder(bytes.NewReader([]byte(responseBody)))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&response); err != nil {
+		t.Errorf("Error unmarshalling response: %v", err)
+		return
+	}
+
+	if response != expectedResponse {
+		t.Errorf("Expected response %v, got %v", expectedResponse, response)
+		return
+	}
+}
