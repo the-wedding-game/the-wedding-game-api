@@ -76,3 +76,22 @@ func verifyAnswerForPhoto(answer string) (bool, error) {
 
 	return true, nil
 }
+
+func (answer Answer) Update() (Answer, error) {
+	conn := GetConnection()
+	updatedAnswer, err := conn.UpdateAnswer(answer.ChallengeID, answer.Value)
+	if err != nil {
+		return Answer{}, err
+	}
+
+	return updatedAnswer, nil
+}
+
+func DeleteAnswer(challengeId uint) (bool, error) {
+	conn := GetConnection()
+	err := conn.DeleteAnswer(challengeId)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}

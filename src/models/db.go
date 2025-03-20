@@ -16,6 +16,10 @@ type DatabaseInterface interface {
 	GetPointsForUser(userId uint) (uint, error)
 	GetLeaderboard() ([]types.LeaderboardEntry, error)
 	GetGallery() ([]types.GalleryItem, error)
+	HasSubmissions(challengeId uint) (bool, error)
+	UpdateChallenge(challengeId Challenge, updateChallengeRequest types.UpdateChallengeRequest) (Challenge, error)
+	UpdateAnswer(challengeId uint, answer string) (Answer, error)
+	DeleteAnswer(challengeId uint) error
 	GetError() error
 }
 

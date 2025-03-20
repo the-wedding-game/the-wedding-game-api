@@ -124,6 +124,108 @@ func (p *database) GetGallery() ([]types.GalleryItem, error) {
 	return gallery, nil
 }
 
+func (p *database) HasSubmissions(challengeId uint) (bool, error) {
+	var count int64
+	tx := p.db.Raw(`
+		SELECT COUNT(*) AS count
+		FROM submissions
+		WHERE challenge_id = ?
+	`, challengeId).Scan(&count)
+	if tx.Error != nil {
+		return false, apperrors.NewDatabaseError(tx.Error.Error())
+	}
+
+	return count > 0, nil
+}
+
+func (p *database) GetChallengeById(challengeId uint) (Challenge, error) {
+	var challenge Challenge
+	tx := p.db.Raw(`
+		SELECT *
+		FROM challenges
+		WHERE id = ?
+	`, challengeId).Scan(&challenge)
+
+	if tx.Error != nil {
+		return Challenge{}, apperrors.NewDatabaseError(tx.Error.Error())
+	}
+
+	return challenge, nil
+}
+
+func (p *database) UpdateChallenge(existingChallenge Challenge, updateChallengeRequest types.UpdateChallengeRequest) (Challenge, error) {
+	if updateChallengeRequest.Name == "" {
+		updateChallengeRequest.Name = existingChallenge.Name
+	}
+	if updateChallengeRequest.Description == "" {
+		updateChallengeRequest.Description = existingChallenge.Description
+	}
+	if updateChallengeRequest.Points == 0 {
+		updateChallengeRequest.Points = existingChallenge.Points
+	}
+	if updateChallengeRequest.Image == "" {
+		updateChallengeRequest.Image = existingChallenge.Image
+	}
+	if updateChallengeRequest.Status == "" {
+		updateChallengeRequest.Status = existingChallenge.Status
+	}
+	if updateChallengeRequest.Type == "" {
+		updateChallengeRequest.Type = existingChallenge.Type
+	}
+
+	var updatedChallenge Challenge
+	tx := p.db.Raw(`
+		UPDATE challenges
+		SET name = ?, description = ?, points = ?, image = ?, status = ?, type = ?
+		WHERE id = ?
+		RETURNING *`,
+		updateChallengeRequest.Name, updateChallengeRequest.Description, updateChallengeRequest.Points, updateChallengeRequest.Image, updateChallengeRequest.Status, updateChallengeRequest.Type, existingChallenge.ID,
+	).Scan(&updatedChallenge)
+
+	if tx.Error != nil {
+		return Challenge{}, apperrors.NewDatabaseError(tx.Error.Error())
+	}
+
+	return updatedChallenge, nil
+}
+
+func (p *database) UpdateAnswer(challengeId uint, answer string) (Answer, error) {
+	var updatedAnswer Answer
+	tx := p.db.Raw(`
+		UPDATE answers
+		SET value = ?
+		WHERE challenge_id = ?
+		RETURNING *
+	`, answer, challengeId).Scan(&updatedAnswer)
+
+	if tx.Error != nil {
+		return Answer{}, apperrors.NewDatabaseError(tx.Error.Error())
+	}
+
+	if tx.RowsAffected == 0 {
+		return Answer{}, apperrors.NewRecordNotFoundError(fmt.Sprintf("Answer with Challenge ID %d not found", challengeId))
+	}
+
+	return updatedAnswer, nil
+}
+
+func (p *database) DeleteAnswer(challengeId uint) error {
+	tx := p.db.Exec(`
+		DELETE FROM answers
+		WHERE challenge_id = ?
+	`, challengeId)
+
+	if tx.Error != nil {
+		return apperrors.NewDatabaseError(tx.Error.Error())
+	}
+
+	if tx.RowsAffected == 0 {
+		return apperrors.NewRecordNotFoundError(fmt.Sprintf("Answer with Challenge ID %d not found", challengeId))
+	}
+
+	return nil
+}
+
 func (p *database) GetError() error {
 	err := p.db.Error
 	if err == nil {

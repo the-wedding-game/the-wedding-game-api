@@ -68,6 +68,75 @@ func (challenge Challenge) Save() (Challenge, error) {
 	return challenge, nil
 }
 
+func (challenge Challenge) Update(updateChallengeRequest types.UpdateChallengeRequest) (Challenge, error) {
+	hasSubmission, err := challenge.hasSubmissions()
+	if err != nil {
+		return Challenge{}, err
+	}
+
+	if hasSubmission {
+		// Cannot update challenge type if submissions exist
+		if updateChallengeRequest.Type != challenge.Type {
+			return Challenge{}, apperrors.NewValidationError("Cannot update challenge type if submissions exist")
+		}
+
+		// Cannot update answer if submissions exist
+		if updateChallengeRequest.Type == types.AnswerQuestionChallenge && updateChallengeRequest.Answer != "" {
+			sameAnswer, err := verifyAnswerForQuestion(challenge.ID, updateChallengeRequest.Answer)
+			if err != nil {
+				return Challenge{}, err
+			}
+			if !sameAnswer {
+				return Challenge{}, apperrors.NewValidationError("Cannot update answer if submissions exist")
+			}
+		}
+	}
+
+	conn := GetConnection()
+	updatedChallenge, err := conn.UpdateChallenge(challenge, updateChallengeRequest)
+	if err != nil {
+		return Challenge{}, err
+	}
+
+	if updatedChallenge.Type == types.AnswerQuestionChallenge && updateChallengeRequest.Answer != "" {
+		answer := NewAnswer(challenge.ID, updateChallengeRequest.Answer)
+
+		// If challenge was previously an AnswerQuestionChallenge, update the answer
+		if challenge.Type == types.AnswerQuestionChallenge {
+			_, err := answer.Update()
+			if err != nil {
+				return Challenge{}, err
+			}
+		} else {
+			// If challenge was previously an UploadPhotoChallenge, create a new answer
+			_, err := answer.Save()
+			if err != nil {
+				return Challenge{}, err
+			}
+		}
+	}
+
+	// If challenge was previously an AnswerQuestionChallenge, delete the answer
+	if updatedChallenge.Type == types.UploadPhotoChallenge && challenge.Type == types.AnswerQuestionChallenge {
+		_, err := DeleteAnswer(challenge.ID)
+		if err != nil {
+			return Challenge{}, err
+		}
+	}
+
+	return updatedChallenge, nil
+}
+
+func (challenge Challenge) hasSubmissions() (bool, error) {
+	conn := GetConnection()
+	hasSubmissions, err := conn.HasSubmissions(challenge.ID)
+	if err != nil {
+		return false, err
+	}
+
+	return hasSubmissions, nil
+}
+
 func GetAllChallenges(showInactive bool) ([]Challenge, error) {
 	conn := GetConnection()
 	challenges, err := conn.GetAllChallenges(showInactive)

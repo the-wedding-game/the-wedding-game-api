@@ -69,3 +69,23 @@ type GetChallengeAdminResponse struct {
 	Status      ChallengeStatus `json:"status"`
 	Type        ChallengeType   `json:"type"`
 }
+
+type UpdateChallengeRequest struct {
+	Name        string          `json:"name" validate:"required,min=4"`
+	Description string          `json:"description" validate:"required,min=9"`
+	Points      uint            `json:"points" validate:"required,gte=0"`
+	Image       string          `json:"image" validate:"required,url"`
+	Status      ChallengeStatus `json:"status" validate:"required,oneof=ACTIVE INACTIVE"`
+	Type        ChallengeType   `json:"type" validate:"required,oneof=UPLOAD_PHOTO ANSWER_QUESTION"`
+	Answer      string          `json:"answer" validate:"required_if=Type ANSWER_QUESTION"`
+}
+
+type UpdateChallengeResponse struct {
+	Id          uint            `json:"id"`
+	Name        string          `json:"name"`
+	Description string          `json:"description"`
+	Points      uint            `json:"points"`
+	Image       string          `json:"image"`
+	Status      ChallengeStatus `json:"status"`
+	Type        ChallengeType   `json:"type"`
+}

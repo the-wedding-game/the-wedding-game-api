@@ -184,3 +184,36 @@ func VerifyAnswer(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, response)
 	return
 }
+
+func UpdateChallenge(c *gin.Context) {
+	id, editChallengeRequest, err := validators.ValidateUpdateChallengeRequest(c)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	challenge, err := models.GetChallengeByID(id)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	challenge, err = challenge.Update(editChallengeRequest)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	response := types.UpdateChallengeResponse{
+		Id:          challenge.ID,
+		Name:        challenge.Name,
+		Description: challenge.Description,
+		Points:      challenge.Points,
+		Image:       challenge.Image,
+		Status:      challenge.Status,
+		Type:        challenge.Type,
+	}
+
+	c.IndentedJSON(http.StatusOK, response)
+	return
+}

@@ -118,6 +118,54 @@ func (m *MockDB) GetGallery() ([]types.GalleryItem, error) {
 	}, nil
 }
 
+func (m *MockDB) GetChallengeByID(id uint) (Challenge, error) {
+	if m.Error != nil {
+		return Challenge{}, apperrors.NewDatabaseError(m.Error.Error())
+	}
+
+	return Challenge{
+		ID:          id,
+		Name:        "Challenge",
+		Description: "Description",
+		Points:      100,
+		Image:       "https://example.com/image.jpg",
+		Status:      "active",
+		Type:        "upload_photo",
+	}, nil
+}
+
+func (m *MockDB) HasSubmissions(_ uint) (bool, error) {
+	if m.Error != nil {
+		return false, apperrors.NewDatabaseError(m.Error.Error())
+	}
+
+	return true, nil
+}
+
+func (m *MockDB) UpdateChallenge(_ Challenge, _ types.UpdateChallengeRequest) (Challenge, error) {
+	if m.Error != nil {
+		return Challenge{}, apperrors.NewDatabaseError(m.Error.Error())
+	}
+
+	return Challenge{}, nil
+}
+
+func (m *MockDB) DeleteAnswer(_ uint) error {
+	if m.Error != nil {
+		return apperrors.NewDatabaseError(m.Error.Error())
+	}
+
+	return nil
+}
+
+func (m *MockDB) UpdateAnswer(_ uint, _ string) (Answer, error) {
+	if m.Error != nil {
+		return Answer{}, apperrors.NewDatabaseError(m.Error.Error())
+	}
+
+	return Answer{}, nil
+}
+
 func (m *MockDB) GetError() error {
 	if m.Error == nil {
 		return nil
