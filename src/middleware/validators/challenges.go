@@ -50,6 +50,29 @@ func ValidateGetChallengeByIdRequest(c *gin.Context) (uint, error) {
 	return uint(id), nil
 }
 
+func ValidateUpdateChallengeRequest(c *gin.Context) (uint, types.UpdateChallengeRequest, error) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return 0, types.UpdateChallengeRequest{}, apperrors.NewValidationError("invalid challenge id")
+	}
+
+	var updateChallengeRequest types.UpdateChallengeRequest
+	if err := c.BindJSON(&updateChallengeRequest); err != nil {
+		return 0, types.UpdateChallengeRequest{}, apperrors.NewValidationError(err.Error())
+	}
+
+	err = validate.Struct(&updateChallengeRequest)
+	if err != nil {
+		return 0, types.UpdateChallengeRequest{}, apperrors.NewValidationError(err.Error())
+	}
+
+	if !utils.IsURLStrict(updateChallengeRequest.Image) {
+		return 0, types.UpdateChallengeRequest{}, apperrors.NewValidationError("invalid image url")
+	}
+
+	return uint(id), updateChallengeRequest, nil
+}
+
 func ValidateVerifyAnswerRequest(c *gin.Context) (uint, types.VerifyAnswerRequest, error) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {

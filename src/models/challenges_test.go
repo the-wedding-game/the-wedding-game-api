@@ -443,3 +443,268 @@ func TestGetChallengeByIDNotFound(t *testing.T) {
 		t.Errorf("expected Challenge with key 1 not found. but got %s", err.Error())
 	}
 }
+
+func TestChallengeHasSubmissionsTrue(t *testing.T) {
+	mockDb := SetupMockDb()
+
+	challenge, err := testChallenge1.Save()
+	if err != nil {
+		t.Errorf("expected nil but got %s", err.Error())
+		return
+	}
+
+	submission := NewSubmission(1, testChallenge1.ID, "test_answer")
+	_, err = mockDb.AddSubmission(submission)
+	if err != nil {
+		t.Errorf("Error adding submission %s", err.Error())
+		return
+	}
+
+	hasSubmissions, err := challenge.hasSubmissions()
+	if err != nil {
+		t.Errorf("expected nil but got %s", err.Error())
+		return
+	}
+
+	if !hasSubmissions {
+		t.Errorf("expected true but got false")
+	}
+}
+
+func TestChallengeHasSubmissionsFalse(t *testing.T) {
+	SetupMockDb()
+
+	challenge, err := testChallenge1.Save()
+	if err != nil {
+		t.Errorf("expected nil but got %s", err.Error())
+		return
+	}
+
+	hasSubmissions, err := challenge.hasSubmissions()
+	if err != nil {
+		t.Errorf("expected nil but got %s", err.Error())
+		return
+	}
+
+	if hasSubmissions {
+		t.Errorf("expected false but got true")
+	}
+}
+
+func TestChallengeHasSubmissionsError(t *testing.T) {
+	mockDb := SetupMockDb()
+
+	challenge, err := testChallenge1.Save()
+	if err != nil {
+		t.Errorf("expected nil but got %s", err.Error())
+		return
+	}
+
+	mockDb.Error = errors.New("test_error")
+	_, err = challenge.hasSubmissions()
+	if err == nil {
+		t.Errorf("expected error but got nil")
+		return
+	}
+
+	if err.Error() != "test_error" {
+		t.Errorf("expected test_error but got %s", err.Error())
+	}
+}
+
+func TestChallengeUpdateHasSubmissions(t *testing.T) {
+	mockDb := SetupMockDb()
+
+	challenge, err := testChallenge1.Save()
+	if err != nil {
+		t.Errorf("expected nil but got %s", err.Error())
+		return
+	}
+
+	submission := NewSubmission(1, challenge.ID, "test_answer")
+	_, err = mockDb.AddSubmission(submission)
+	if err != nil {
+		t.Errorf("error adding submission %v", err.Error())
+		return
+	}
+
+	updateChallengeRequest := types.UpdateChallengeRequest{
+		Name:        "test_challenge_updated",
+		Description: "test_description_updated",
+		Points:      100,
+		Image:       "test_image_updated",
+		Type:        types.AnswerQuestionChallenge,
+		Answer:      "test_answer_updated",
+	}
+
+	_, err = challenge.Update(updateChallengeRequest)
+	if err == nil {
+		t.Errorf("expected error but got nil")
+		return
+	}
+
+	if err.Error() != "Cannot update challenge type if submissions exist" {
+		t.Errorf("expected Cannot update challenge type if submissions exist but got %s", err.Error())
+	}
+}
+
+func TestChallengeUpdateHasNoSubmissions(t *testing.T) {
+	SetupMockDb()
+
+	challenge, err := testChallenge1.Save()
+	if err != nil {
+		t.Errorf("expected nil but got %s", err.Error())
+		return
+	}
+
+	updateChallengeRequest := types.UpdateChallengeRequest{
+		Name:        "test_challenge_updated",
+		Description: "test_description_updated",
+		Points:      100,
+		Image:       "test_image_updated",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.InactiveChallenge,
+	}
+
+	updatedChallenge, err := challenge.Update(updateChallengeRequest)
+	if err != nil {
+		t.Errorf("expected nil but got %s", err.Error())
+		return
+	}
+
+	if updatedChallenge.Name != "test_challenge_updated" {
+		t.Errorf("expected test_challenge_updated but got %s", updatedChallenge.Name)
+	}
+	if updatedChallenge.Description != "test_description_updated" {
+		t.Errorf("expected test_description_updated but got %s", updatedChallenge.Description)
+	}
+	if updatedChallenge.Points != 100 {
+		t.Errorf("expected 100 but got %d", updatedChallenge.Points)
+	}
+	if updatedChallenge.Image != "test_image_updated" {
+		t.Errorf("expected test_image_updated but got %s", updatedChallenge.Image)
+	}
+	if updatedChallenge.Type != types.UploadPhotoChallenge {
+		t.Errorf("expected ANSWER_QUESTION_CHALLENGE but got %s", updatedChallenge.Type)
+	}
+	if updatedChallenge.Status != types.InactiveChallenge {
+		t.Errorf("expected ACTIVE_CHALLENGE but got %s", updatedChallenge.Status)
+	}
+}
+
+func TestUpdateChallengeWithSubmissionsButNoBreakingChanges(t *testing.T) {
+	mockDb := SetupMockDb()
+
+	challenge, err := testChallenge1.Save()
+	if err != nil {
+		t.Errorf("expected nil but got %s", err.Error())
+		return
+	}
+
+	submission := NewSubmission(1, challenge.ID, "test_answer")
+	_, err = mockDb.AddSubmission(submission)
+	if err != nil {
+		t.Errorf("error adding submission %v", err.Error())
+		return
+	}
+
+	updateChallengeRequest := types.UpdateChallengeRequest{
+		Name:        "test_challenge_updated",
+		Description: "test_description_updated",
+		Points:      100,
+		Image:       "test_image_updated",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.InactiveChallenge,
+	}
+
+	updatedChallenge, err := challenge.Update(updateChallengeRequest)
+	if err != nil {
+		t.Errorf("expected nil but got %s", err.Error())
+		return
+	}
+
+	if updatedChallenge.Name != "test_challenge_updated" {
+		t.Errorf("expected test_challenge_updated but got %s", updatedChallenge.Name)
+	}
+	if updatedChallenge.Description != "test_description_updated" {
+		t.Errorf("expected test_description_updated but got %s", updatedChallenge.Description)
+	}
+	if updatedChallenge.Points != 100 {
+		t.Errorf("expected 100 but got %d", updatedChallenge.Points)
+	}
+	if updatedChallenge.Image != "test_image_updated" {
+		t.Errorf("expected test_image_updated but got %s", updatedChallenge.Image)
+	}
+	if updatedChallenge.Type != types.UploadPhotoChallenge {
+		t.Errorf("expected UPLOAD_PHOTO_CHALLENGE but got %s", updatedChallenge.Type)
+	}
+	if updatedChallenge.Status != types.InactiveChallenge {
+		t.Errorf("expected INACTIVE_CHALLENGE but got %s", updatedChallenge.Status)
+	}
+}
+
+func TestUpdateChallengeWithSubmissionsButSameAnswer(t *testing.T) {
+	SetupMockDb()
+
+	createChallengeRequest := types.CreateChallengeRequest{
+		Name:        testChallenge1.Name,
+		Description: testChallenge1.Description,
+		Points:      testChallenge1.Points,
+		Image:       testChallenge1.Image,
+		Type:        types.AnswerQuestionChallenge,
+		Answer:      "test_answer",
+	}
+
+	challenge, err := CreateNewChallenge(createChallengeRequest)
+	if err != nil {
+		t.Errorf("expected nil but got %s", err.Error())
+		return
+	}
+
+	submission := NewSubmission(1, challenge.ID, "test_answer")
+	_, err = submission.Save()
+	if err != nil {
+		t.Errorf("error adding submission %v", err.Error())
+		return
+	}
+
+	updateChallengeRequest := types.UpdateChallengeRequest{
+		Name:        "test_challenge_updated",
+		Description: "test_description_updated",
+		Points:      100,
+		Image:       "test_image_updated",
+		Type:        types.AnswerQuestionChallenge,
+		Answer:      "test_answer",
+		Status:      types.InactiveChallenge,
+	}
+
+	updatedChallenge, err := challenge.Update(updateChallengeRequest)
+	if err != nil {
+		t.Errorf("expected nil but got %s", err.Error())
+		return
+	}
+
+	if updatedChallenge.Name != "test_challenge_updated" {
+		t.Errorf("expected test_challenge_updated but got %s", updatedChallenge.Name)
+	}
+
+	if updatedChallenge.Description != "test_description_updated" {
+		t.Errorf("expected test_description_updated but got %s", updatedChallenge.Description)
+	}
+
+	if updatedChallenge.Points != 100 {
+		t.Errorf("expected 100 but got %d", updatedChallenge.Points)
+	}
+
+	if updatedChallenge.Image != "test_image_updated" {
+		t.Errorf("expected test_image_updated but got %s", updatedChallenge.Image)
+	}
+
+	if updatedChallenge.Type != types.AnswerQuestionChallenge {
+		t.Errorf("expected ANSWER_QUESTION_CHALLENGE but got %s", updatedChallenge.Type)
+	}
+
+	if updatedChallenge.Status != types.InactiveChallenge {
+		t.Errorf("expected ACTIVE_CHALLENGE but got %s", updatedChallenge.Status)
+	}
+}

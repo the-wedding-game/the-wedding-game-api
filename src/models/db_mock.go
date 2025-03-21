@@ -9,8 +9,9 @@ import (
 )
 
 type MockDB struct {
-	items []interface{}
-	Error error
+	items       []interface{}
+	submissions []Submission
+	Error       error
 }
 
 func (m *MockDB) GetSession() DatabaseInterface {
@@ -118,6 +119,78 @@ func (m *MockDB) GetGallery() ([]types.GalleryItem, error) {
 	}, nil
 }
 
+func (m *MockDB) GetChallengeByID(id uint) (Challenge, error) {
+	if m.Error != nil {
+		return Challenge{}, apperrors.NewDatabaseError(m.Error.Error())
+	}
+
+	return Challenge{
+		ID:          id,
+		Name:        "Challenge",
+		Description: "Description",
+		Points:      100,
+		Image:       "https://example.com/image.jpg",
+		Status:      "active",
+		Type:        "upload_photo",
+	}, nil
+}
+
+func (m *MockDB) HasSubmissions(_ uint) (bool, error) {
+	if m.Error != nil {
+		return false, apperrors.NewDatabaseError(m.Error.Error())
+	}
+
+	if len(m.submissions) > 0 {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func (m *MockDB) UpdateChallenge(challenge Challenge, updated types.UpdateChallengeRequest) (Challenge, error) {
+	if m.Error != nil {
+		return Challenge{}, apperrors.NewDatabaseError(m.Error.Error())
+	}
+
+	challenge.Name = updated.Name
+	challenge.Description = updated.Description
+	challenge.Points = updated.Points
+	challenge.Image = updated.Image
+	challenge.Status = updated.Status
+	challenge.Type = updated.Type
+
+	m.items = append(m.items, challenge)
+
+	return challenge, nil
+}
+
+func (m *MockDB) DeleteAnswer(challengeId uint) error {
+	if m.Error != nil {
+		return apperrors.NewDatabaseError(m.Error.Error())
+	}
+
+	if challengeId == 999 {
+		return apperrors.NewRecordNotFoundError("Answer with key 999 not found")
+	}
+
+	return nil
+}
+
+func (m *MockDB) UpdateAnswer(challengeId uint, value string) (Answer, error) {
+	if m.Error != nil {
+		return Answer{}, apperrors.NewDatabaseError(m.Error.Error())
+	}
+
+	if challengeId == 999 {
+		return Answer{}, apperrors.NewRecordNotFoundError("Answer with key 999 not found")
+	}
+
+	return Answer{
+		ChallengeID: challengeId,
+		Value:       value,
+	}, nil
+}
+
 func (m *MockDB) GetError() error {
 	if m.Error == nil {
 		return nil
@@ -128,4 +201,13 @@ func (m *MockDB) GetError() error {
 	}
 
 	return apperrors.NewDatabaseError(m.Error.Error())
+}
+
+func (m *MockDB) AddSubmission(submission Submission) (Submission, error) {
+	if m.Error != nil {
+		return Submission{}, apperrors.NewDatabaseError(m.Error.Error())
+	}
+
+	m.submissions = append(m.submissions, submission)
+	return submission, nil
 }
