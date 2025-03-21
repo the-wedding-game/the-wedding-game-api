@@ -118,8 +118,7 @@ func (challenge Challenge) Update(updateChallengeRequest types.UpdateChallengeRe
 
 	// If challenge was previously an AnswerQuestionChallenge, delete the answer
 	if updatedChallenge.Type == types.UploadPhotoChallenge && challenge.Type == types.AnswerQuestionChallenge {
-		_, err := DeleteAnswer(challenge.ID)
-		if err != nil {
+		if err := DeleteAnswer(challenge.ID); err != nil {
 			return Challenge{}, err
 		}
 	}
@@ -129,22 +128,12 @@ func (challenge Challenge) Update(updateChallengeRequest types.UpdateChallengeRe
 
 func (challenge Challenge) hasSubmissions() (bool, error) {
 	conn := GetConnection()
-	hasSubmissions, err := conn.HasSubmissions(challenge.ID)
-	if err != nil {
-		return false, err
-	}
-
-	return hasSubmissions, nil
+	return conn.HasSubmissions(challenge.ID)
 }
 
 func GetAllChallenges(showInactive bool) ([]Challenge, error) {
 	conn := GetConnection()
-	challenges, err := conn.GetAllChallenges(showInactive)
-	if err != nil {
-		return []Challenge{}, err
-	}
-
-	return challenges, nil
+	return conn.GetAllChallenges(showInactive)
 }
 
 func GetChallengeByID(id uint) (Challenge, error) {
