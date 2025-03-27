@@ -1,7 +1,7 @@
 FROM golang:1.23.0-alpine AS builder
 
 WORKDIR /app
-ADD ./src .
+COPY ./src .
 
 RUN CGO_ENABLED=0 go build -o server
 

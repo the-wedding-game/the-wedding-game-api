@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"gorm.io/gorm"
 	"strconv"
 	apperrors "the-wedding-game-api/errors"
@@ -18,14 +19,14 @@ type Challenge struct {
 	Status      types.ChallengeStatus `gorm:"default:'ACTIVE'"`
 }
 
-func NewChallenge(name string, description string, points uint, image string, _type types.ChallengeType,
+func NewChallenge(name string, description string, points uint, image string, challengeType types.ChallengeType,
 	status types.ChallengeStatus) Challenge {
 	challenge := Challenge{
 		Name:        name,
 		Description: description,
 		Points:      points,
 		Image:       image,
-		Type:        _type,
+		Type:        challengeType,
 		Status:      status,
 	}
 	return challenge
@@ -69,27 +70,8 @@ func (challenge Challenge) Save() (Challenge, error) {
 }
 
 func (challenge Challenge) Update(updateChallengeRequest types.UpdateChallengeRequest) (Challenge, error) {
-	hasSubmission, err := challenge.hasSubmissions()
-	if err != nil {
+	if err := challenge.checkForInvalidUpdateFields(updateChallengeRequest); err != nil {
 		return Challenge{}, err
-	}
-
-	if hasSubmission {
-		// Cannot update challenge type if submissions exist
-		if updateChallengeRequest.Type != challenge.Type {
-			return Challenge{}, apperrors.NewValidationError("Cannot update challenge type if submissions exist")
-		}
-
-		// Cannot update answer if submissions exist
-		if updateChallengeRequest.Type == types.AnswerQuestionChallenge && updateChallengeRequest.Answer != "" {
-			sameAnswer, err := verifyAnswerForQuestion(challenge.ID, updateChallengeRequest.Answer)
-			if err != nil {
-				return Challenge{}, err
-			}
-			if !sameAnswer {
-				return Challenge{}, apperrors.NewValidationError("Cannot update answer if submissions exist")
-			}
-		}
 	}
 
 	conn := GetConnection()
@@ -98,37 +80,11 @@ func (challenge Challenge) Update(updateChallengeRequest types.UpdateChallengeRe
 		return Challenge{}, err
 	}
 
-	if updatedChallenge.Type == types.AnswerQuestionChallenge && updateChallengeRequest.Answer != "" {
-		answer := NewAnswer(challenge.ID, updateChallengeRequest.Answer)
-
-		// If challenge was previously an AnswerQuestionChallenge, update the answer
-		if challenge.Type == types.AnswerQuestionChallenge {
-			_, err := answer.Update()
-			if err != nil {
-				return Challenge{}, err
-			}
-		} else {
-			// If challenge was previously an UploadPhotoChallenge, create a new answer
-			_, err := answer.Save()
-			if err != nil {
-				return Challenge{}, err
-			}
-		}
-	}
-
-	// If challenge was previously an AnswerQuestionChallenge, delete the answer
-	if updatedChallenge.Type == types.UploadPhotoChallenge && challenge.Type == types.AnswerQuestionChallenge {
-		if err := DeleteAnswer(challenge.ID); err != nil {
-			return Challenge{}, err
-		}
+	if err := updatedChallenge.updateUnderlyingAnswer(challenge.Type, updateChallengeRequest.Answer); err != nil {
+		return Challenge{}, err
 	}
 
 	return updatedChallenge, nil
-}
-
-func (challenge Challenge) hasSubmissions() (bool, error) {
-	conn := GetConnection()
-	return conn.HasSubmissions(challenge.ID)
 }
 
 func GetAllChallenges(showInactive bool) ([]Challenge, error) {
@@ -146,4 +102,65 @@ func GetChallengeByID(id uint) (Challenge, error) {
 		return Challenge{}, err
 	}
 	return challenge, nil
+}
+
+func (challenge Challenge) hasSubmissions() (bool, error) {
+	conn := GetConnection()
+	return conn.HasSubmissions(challenge.ID)
+}
+
+func (challenge Challenge) checkForInvalidUpdateFields(updateChallengeRequest types.UpdateChallengeRequest) error {
+	hasSubmission, err := challenge.hasSubmissions()
+	if err != nil {
+		return fmt.Errorf("error while retrieving submissions: %w", err)
+	}
+
+	if hasSubmission {
+		// Cannot update challenge type if submissions exist
+		if updateChallengeRequest.Type != challenge.Type {
+			return apperrors.NewValidationError("Cannot update challenge type if submissions exist")
+		}
+
+		// Cannot update answer if submissions exist
+		if updateChallengeRequest.Type == types.AnswerQuestionChallenge && updateChallengeRequest.Answer != "" {
+			sameAnswer, err := verifyAnswerForQuestion(challenge.ID, updateChallengeRequest.Answer)
+			if err != nil {
+				return fmt.Errorf("error verifying answer: %w", err)
+			}
+			if !sameAnswer {
+				return apperrors.NewValidationError("Cannot update answer if submissions exist")
+			}
+		}
+	}
+
+	return nil
+}
+
+func (challenge Challenge) updateUnderlyingAnswer(oldType types.ChallengeType, answer string) error {
+	if challenge.Type == types.AnswerQuestionChallenge && answer != "" {
+		answer := NewAnswer(challenge.ID, answer)
+
+		// If challenge was previously an AnswerQuestionChallenge, update the answer
+		if oldType == types.AnswerQuestionChallenge {
+			_, err := answer.Update()
+			if err != nil {
+				return fmt.Errorf("error while updating answer for challenge: %w", err)
+			}
+		} else {
+			// If challenge was previously an UploadPhotoChallenge, create a new answer
+			_, err := answer.Save()
+			if err != nil {
+				return fmt.Errorf("error while creating answer for challenge: %w", err)
+			}
+		}
+	}
+
+	// If challenge was previously an AnswerQuestionChallenge, delete the answer
+	if challenge.Type == types.UploadPhotoChallenge && oldType == types.AnswerQuestionChallenge {
+		if err := DeleteAnswer(challenge.ID); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

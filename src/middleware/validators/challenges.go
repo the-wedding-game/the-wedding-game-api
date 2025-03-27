@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"strconv"
+	"the-wedding-game-api/constants"
 	apperrors "the-wedding-game-api/errors"
 	"the-wedding-game-api/types"
 	"the-wedding-game-api/utils"
@@ -27,15 +28,15 @@ func ValidateCreateChallengeRequest(c *gin.Context) (types.CreateChallengeReques
 	}
 
 	if createChallengeRequest.Type != types.UploadPhotoChallenge && createChallengeRequest.Type != types.AnswerQuestionChallenge {
-		return types.CreateChallengeRequest{}, apperrors.NewValidationError("invalid challenge type")
+		return types.CreateChallengeRequest{}, apperrors.NewValidationError(constants.InvalidChallengeTypeError)
 	}
 
 	if createChallengeRequest.Type == types.AnswerQuestionChallenge && createChallengeRequest.Answer == "" {
-		return types.CreateChallengeRequest{}, apperrors.NewValidationError("answer is required for answer question challenges")
+		return types.CreateChallengeRequest{}, apperrors.NewValidationError(constants.AnswerRequiredError)
 	}
 
 	if !utils.IsURLStrict(createChallengeRequest.Image) {
-		return types.CreateChallengeRequest{}, apperrors.NewValidationError("invalid image url")
+		return types.CreateChallengeRequest{}, apperrors.NewValidationError(constants.InvalidImageURLError)
 	}
 
 	return createChallengeRequest, nil
@@ -44,7 +45,7 @@ func ValidateCreateChallengeRequest(c *gin.Context) (types.CreateChallengeReques
 func ValidateGetChallengeByIdRequest(c *gin.Context) (uint, error) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return 0, apperrors.NewValidationError("invalid challenge id")
+		return 0, apperrors.NewValidationError(constants.InvalidChallengeIDError)
 	}
 
 	return uint(id), nil
@@ -53,7 +54,7 @@ func ValidateGetChallengeByIdRequest(c *gin.Context) (uint, error) {
 func ValidateUpdateChallengeRequest(c *gin.Context) (uint, types.UpdateChallengeRequest, error) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return 0, types.UpdateChallengeRequest{}, apperrors.NewValidationError("invalid challenge id")
+		return 0, types.UpdateChallengeRequest{}, apperrors.NewValidationError(constants.InvalidChallengeIDError)
 	}
 
 	var updateChallengeRequest types.UpdateChallengeRequest
@@ -67,7 +68,7 @@ func ValidateUpdateChallengeRequest(c *gin.Context) (uint, types.UpdateChallenge
 	}
 
 	if !utils.IsURLStrict(updateChallengeRequest.Image) {
-		return 0, types.UpdateChallengeRequest{}, apperrors.NewValidationError("invalid image url")
+		return 0, types.UpdateChallengeRequest{}, apperrors.NewValidationError(constants.InvalidImageURLError)
 	}
 
 	return uint(id), updateChallengeRequest, nil
@@ -76,7 +77,7 @@ func ValidateUpdateChallengeRequest(c *gin.Context) (uint, types.UpdateChallenge
 func ValidateVerifyAnswerRequest(c *gin.Context) (uint, types.VerifyAnswerRequest, error) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return 0, types.VerifyAnswerRequest{}, apperrors.NewValidationError("invalid challenge id")
+		return 0, types.VerifyAnswerRequest{}, apperrors.NewValidationError(constants.InvalidChallengeIDError)
 	}
 
 	var verifyAnswerRequest types.VerifyAnswerRequest
