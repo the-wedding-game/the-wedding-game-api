@@ -2825,3 +2825,48 @@ func TestUpdateChallengeAnswerToUpload(t *testing.T) {
 		return
 	}
 }
+
+func TestUpdateChallengeUploadToAnswerNoAnswer(t *testing.T) {
+	models.ResetConnection()
+	deleteAllChallenges()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err = challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	updateChallengeRequest := types.UpdateChallengeRequest{
+		Name:        "updated_name",
+		Description: "updated_description",
+		Points:      20,
+		Image:       "https://example.com/image.jpg",
+		Type:        types.AnswerQuestionChallenge,
+		Status:      types.InactiveChallenge,
+	}
+
+	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/"+strconv.Itoa(int(challenge.ID)), updateChallengeRequest, accessToken.Token)
+	if statusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code 200, got %v", statusCode)
+	}
+
+	expectedResponse := "{\"message\":\"Answer cannot be empty when changing to AnswerQuestion challenge type\",\"status\":\"error\"}"
+	if responseBody != expectedResponse {
+		t.Errorf("Expected response %v, got %v", expectedResponse, responseBody)
+		return
+	}
+}

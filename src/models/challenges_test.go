@@ -708,3 +708,42 @@ func TestUpdateChallengeWithSubmissionsButSameAnswer(t *testing.T) {
 		t.Errorf("expected ACTIVE_CHALLENGE but got %s", updatedChallenge.Status)
 	}
 }
+
+func TestUpdateChallengeUploadToAnswerNoAnswer(t *testing.T) {
+	SetupMockDb()
+
+	createChallengeRequest := types.CreateChallengeRequest{
+		Name:        testChallenge1.Name,
+		Description: testChallenge1.Description,
+		Points:      testChallenge1.Points,
+		Image:       testChallenge1.Image,
+		Type:        types.UploadPhotoChallenge,
+	}
+
+	challenge, err := CreateNewChallenge(createChallengeRequest)
+	if err != nil {
+		t.Errorf("expected nil but got %s", err.Error())
+		return
+	}
+
+	updateChallengeRequest := types.UpdateChallengeRequest{
+		Name:        "test_challenge_updated",
+		Description: "test_description_updated",
+		Points:      100,
+		Image:       "test_image_updated",
+		Type:        types.AnswerQuestionChallenge,
+		Status:      types.InactiveChallenge,
+	}
+
+	_, err = challenge.Update(updateChallengeRequest)
+	if err == nil {
+		t.Errorf("expected an error")
+		return
+	}
+
+	if err.Error() != "Answer cannot be empty when changing to AnswerQuestion challenge type" {
+		t.Errorf("expected Answer cannot be empty when changing to AnswerQuestion challenge type but got %s", err.Error())
+		return
+	}
+
+}
