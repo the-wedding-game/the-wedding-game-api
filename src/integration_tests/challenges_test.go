@@ -2150,7 +2150,7 @@ func TestUpdateChallengeWithMissingAnswerQuestionChallengeAnswer(t *testing.T) {
 		t.Errorf("Expected status code 400, got %v", statusCode)
 	}
 
-	if responseBody != "{\"message\":\"Answer cannot be empty\",\"status\":\"error\"}" {
+	if responseBody != "{\"message\":\"Answer cannot be empty when changing to AnswerQuestion challenge type\",\"status\":\"error\"}" {
 		t.Errorf("Expected response Bad Request, got %v", responseBody)
 	}
 
@@ -2281,7 +2281,7 @@ func TestUpdateChallengeWithEmptyAnswerQuestionChallengeAnswer(t *testing.T) {
 		t.Errorf("Expected status code 400, got %v", statusCode)
 	}
 
-	if responseBody != "{\"message\":\"Answer cannot be empty\",\"status\":\"error\"}" {
+	if responseBody != "{\"message\":\"Answer cannot be empty when changing to AnswerQuestion challenge type\",\"status\":\"error\"}" {
 		t.Errorf("Expected response Bad Request, got %v", responseBody)
 	}
 }
