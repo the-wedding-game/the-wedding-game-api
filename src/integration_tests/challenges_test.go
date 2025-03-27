@@ -2122,6 +2122,20 @@ func TestUpdateChallengeWithMissingAnswerQuestionChallengeAnswer(t *testing.T) {
 		return
 	}
 
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err = challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
 	updateChallengeRequest := map[string]interface{}{
 		"name":        "updated_name",
 		"description": "updated_description",
@@ -2130,15 +2144,16 @@ func TestUpdateChallengeWithMissingAnswerQuestionChallengeAnswer(t *testing.T) {
 		"type":        types.AnswerQuestionChallenge,
 		"status":      types.InactiveChallenge,
 	}
-	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/1", updateChallengeRequest, accessToken.Token)
+	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/"+strconv.Itoa(int(challenge.ID)), updateChallengeRequest, accessToken.Token)
 
 	if statusCode != http.StatusBadRequest {
 		t.Errorf("Expected status code 400, got %v", statusCode)
 	}
 
-	if responseBody != "{\"message\":\"Key: 'UpdateChallengeRequest.Answer' Error:Field validation for 'Answer' failed on the 'required_if' tag\",\"status\":\"error\"}" {
+	if responseBody != "{\"message\":\"Answer cannot be empty\",\"status\":\"error\"}" {
 		t.Errorf("Expected response Bad Request, got %v", responseBody)
 	}
+
 }
 
 func TestUpdateChallengeWithEmptyName(t *testing.T) {
@@ -2237,6 +2252,20 @@ func TestUpdateChallengeWithEmptyAnswerQuestionChallengeAnswer(t *testing.T) {
 		return
 	}
 
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err = challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
 	updateChallengeRequest := map[string]interface{}{
 		"name":        "updated_name",
 		"description": "updated_description",
@@ -2246,13 +2275,13 @@ func TestUpdateChallengeWithEmptyAnswerQuestionChallengeAnswer(t *testing.T) {
 		"status":      types.InactiveChallenge,
 		"answer":      "",
 	}
-	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/1", updateChallengeRequest, accessToken.Token)
+	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/"+strconv.Itoa(int(challenge.ID)), updateChallengeRequest, accessToken.Token)
 
 	if statusCode != http.StatusBadRequest {
 		t.Errorf("Expected status code 400, got %v", statusCode)
 	}
 
-	if responseBody != "{\"message\":\"Key: 'UpdateChallengeRequest.Answer' Error:Field validation for 'Answer' failed on the 'required_if' tag\",\"status\":\"error\"}" {
+	if responseBody != "{\"message\":\"Answer cannot be empty\",\"status\":\"error\"}" {
 		t.Errorf("Expected response Bad Request, got %v", responseBody)
 	}
 }
@@ -2500,7 +2529,7 @@ func TestUpdateChallengeUpdateAnswerButSubmissionsExistAnswerDoesNotExist(t *tes
 		t.Errorf("Expected status code 404, got %v", statusCode)
 	}
 
-	expectedResponse := "{\"message\":\"error verifying answer: Answer with Challenge with key 26 not found.\",\"status\":\"error\"}"
+	expectedResponse := "{\"message\":\"error verifying answer: Answer with Challenge with key " + strconv.Itoa(int(challenge.ID)) + " not found.\",\"status\":\"error\"}"
 	if responseBody != expectedResponse {
 		t.Errorf("Expected response %v, got %v", expectedResponse, responseBody)
 	}

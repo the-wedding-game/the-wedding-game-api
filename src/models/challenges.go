@@ -137,17 +137,22 @@ func (challenge Challenge) checkForInvalidUpdateFields(updateChallengeRequest ty
 }
 
 func (challenge Challenge) updateUnderlyingAnswer(oldType types.ChallengeType, answer string) error {
-	if challenge.Type == types.AnswerQuestionChallenge && answer != "" {
-		answer := NewAnswer(challenge.ID, answer)
+	if challenge.Type == types.AnswerQuestionChallenge {
 
 		// If challenge was previously an AnswerQuestionChallenge, update the answer
-		if oldType == types.AnswerQuestionChallenge {
+		if oldType == types.AnswerQuestionChallenge && answer != "" {
+			answer := NewAnswer(challenge.ID, answer)
 			_, err := answer.Update()
 			if err != nil {
 				return fmt.Errorf("error while updating answer for challenge: %w", err)
 			}
 		} else {
 			// If challenge was previously an UploadPhotoChallenge, create a new answer
+			if answer == "" {
+				return apperrors.NewValidationError("Answer cannot be empty")
+			}
+
+			answer := NewAnswer(challenge.ID, answer)
 			_, err := answer.Save()
 			if err != nil {
 				return fmt.Errorf("error while creating answer for challenge: %w", err)
