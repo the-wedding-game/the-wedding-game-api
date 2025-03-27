@@ -3,6 +3,7 @@ package integrationtests
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 	"testing"
@@ -663,12 +664,12 @@ func TestCreateChallengeWithEmptyPoints(t *testing.T) {
 		return
 	}
 
-	challengeRequest := types.CreateChallengeRequest{
-		Name:        "test_challenge",
-		Description: "test_description",
-		Points:      0,
-		Image:       "https://test_image.com",
-		Type:        types.UploadPhotoChallenge,
+	challengeRequest := map[string]interface{}{
+		"name":        "test_challenge",
+		"description": "test_description",
+		"points":      "",
+		"image":       "https://test_image.com",
+		"type":        types.UploadPhotoChallenge,
 	}
 	statusCode, responseBody := makeRequestWithToken("POST", "/challenges", challengeRequest, accessToken.Token)
 
@@ -676,7 +677,7 @@ func TestCreateChallengeWithEmptyPoints(t *testing.T) {
 		t.Errorf("Expected status code 400, got %v", statusCode)
 	}
 
-	if responseBody != "{\"message\":\"Key: 'CreateChallengeRequest.Points' Error:Field validation for 'Points' failed on the 'required' tag\",\"status\":\"error\"}" {
+	if responseBody != "{\"message\":\"json: cannot unmarshal string into Go struct field CreateChallengeRequest.points of type uint\",\"status\":\"error\"}" {
 		t.Errorf("Expected response Bad Request, got %v", responseBody)
 	}
 }
@@ -984,62 +985,37 @@ func TestGetAllChallenges(t *testing.T) {
 		return
 	}
 
-	if response.Challenges[0].Name != "test_challenge_1" {
-		t.Errorf("Expected name test_challenge_1, got %v", response.Challenges[0].Name)
+	expectedResponseChallenge1 := types.GetChallengeResponse{
+		Id:          challenge1.ID,
+		Name:        "test_challenge_1",
+		Description: "test_description_1",
+		Points:      10,
+		Image:       "test_image_1",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.ActiveChallenge,
+		Completed:   false,
 	}
 
-	if response.Challenges[0].Description != "test_description_1" {
-		t.Errorf("Expected description test_description_1, got %v", response.Challenges[0].Description)
+	if response.Challenges[0] != expectedResponseChallenge1 {
+		t.Errorf("Expected challenge 1 to be %v, got %v", expectedResponseChallenge1, response.Challenges[0])
+		return
 	}
 
-	if response.Challenges[0].Points != 10 {
-		t.Errorf("Expected points 10, got %v", response.Challenges[0].Points)
+	expectedResponseChallenge2 := types.GetChallengeResponse{
+		Id:          challenge2.ID,
+		Name:        "test_challenge_2",
+		Description: "test_description_2",
+		Points:      20,
+		Image:       "test_image_2",
+		Type:        types.AnswerQuestionChallenge,
+		Status:      types.ActiveChallenge,
+		Completed:   false,
 	}
 
-	if response.Challenges[0].Image != "test_image_1" {
-		t.Errorf("Expected image test_image_1, got %v", response.Challenges[0].Image)
+	if response.Challenges[1] != expectedResponseChallenge2 {
+		t.Errorf("Expected challenge 2 to be %v, got %v", expectedResponseChallenge2, response.Challenges[1])
+		return
 	}
-
-	if response.Challenges[0].Type != types.UploadPhotoChallenge {
-		t.Errorf("Expected type UPLOAD_PHOTO, got %v", response.Challenges[0].Type)
-	}
-
-	if response.Challenges[0].Status != types.ActiveChallenge {
-		t.Errorf("Expected status ACTIVE, got %v", response.Challenges[0].Status)
-	}
-
-	if response.Challenges[0].Completed != false {
-		t.Errorf("Expected completed false, got %v", response.Challenges[0].Completed)
-	}
-
-	if response.Challenges[1].Name != "test_challenge_2" {
-		t.Errorf("Expected name test_challenge_2, got %v", response.Challenges[1].Name)
-	}
-
-	if response.Challenges[1].Description != "test_description_2" {
-		t.Errorf("Expected description test_description_2, got %v", response.Challenges[1].Description)
-	}
-
-	if response.Challenges[1].Points != 20 {
-		t.Errorf("Expected points 20, got %v", response.Challenges[1].Points)
-	}
-
-	if response.Challenges[1].Image != "test_image_2" {
-		t.Errorf("Expected image test_image_2, got %v", response.Challenges[1].Image)
-	}
-
-	if response.Challenges[1].Type != types.AnswerQuestionChallenge {
-		t.Errorf("Expected type ANSWER_QUESTION, got %v", response.Challenges[1].Type)
-	}
-
-	if response.Challenges[1].Status != types.ActiveChallenge {
-		t.Errorf("Expected status ACTIVE, got %v", response.Challenges[1].Status)
-	}
-
-	if response.Challenges[1].Completed != false {
-		t.Errorf("Expected completed false, got %v", response.Challenges[1].Completed)
-	}
-
 }
 
 func TestGetAllChallengesWithInactiveChallenges(t *testing.T) {
@@ -1801,6 +1777,7 @@ func TestUpdateChallenge(t *testing.T) {
 	}
 
 	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/"+strconv.Itoa(int(challenge.ID)), updateChallengeRequest, accessToken.Token)
+	fmt.Println(responseBody)
 
 	if statusCode != http.StatusOK {
 		t.Errorf("Expected status code 200, got %v", statusCode)
@@ -2523,8 +2500,9 @@ func TestUpdateChallengeUpdateAnswerButSubmissionsExistAnswerDoesNotExist(t *tes
 		t.Errorf("Expected status code 404, got %v", statusCode)
 	}
 
-	if responseBody != "{\"message\":\"Answer with Challenge with key 26 not found.\",\"status\":\"error\"}" {
-		t.Errorf("Expected response Bad Request, got %v", responseBody)
+	expectedResponse := "{\"message\":\"error verifying answer: Answer with Challenge with key 26 not found.\",\"status\":\"error\"}"
+	if responseBody != expectedResponse {
+		t.Errorf("Expected response %v, got %v", expectedResponse, responseBody)
 	}
 }
 

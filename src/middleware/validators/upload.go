@@ -6,6 +6,7 @@ import (
 	"mime/multipart"
 	"path/filepath"
 	"the-wedding-game-api/config"
+	"the-wedding-game-api/constants"
 	apperrors "the-wedding-game-api/errors"
 )
 
@@ -13,26 +14,26 @@ func ValidateUploadImageRequest(c *gin.Context) (*multipart.FileHeader, error) {
 	file, err := c.FormFile("image")
 	if err != nil {
 		if err.Error() == "missing form body" {
-			return &multipart.FileHeader{}, apperrors.NewValidationError("image is required")
+			return &multipart.FileHeader{}, apperrors.NewValidationError(constants.ImageIsRequiredError)
 		}
 
 		if err.Error() == "http: no such file" {
-			return &multipart.FileHeader{}, apperrors.NewValidationError("image is required")
+			return &multipart.FileHeader{}, apperrors.NewValidationError(constants.ImageIsRequiredError)
 		}
 
 		return &multipart.FileHeader{}, fmt.Errorf("error getting file from form: %v", err)
 	}
 
 	if !isAllowedExtension(file) {
-		return &multipart.FileHeader{}, apperrors.NewValidationError("file must be an image")
+		return &multipart.FileHeader{}, apperrors.NewValidationError(constants.FileMustBeAnImageError)
 	}
 
 	if file.Size == 0 {
-		return &multipart.FileHeader{}, apperrors.NewValidationError("file is empty")
+		return &multipart.FileHeader{}, apperrors.NewValidationError(constants.FileIsEmptyError)
 	}
 
 	if file.Size > int64(config.MAX_UPLOAD_SIZE) {
-		return &multipart.FileHeader{}, apperrors.NewValidationError("maximum file size is " + fmt.Sprint(config.MAX_UPLOAD_SIZE) + " bytes")
+		return &multipart.FileHeader{}, apperrors.NewValidationError(constants.MaxFileSizeError)
 	}
 
 	return file, nil
