@@ -77,7 +77,7 @@ type UpdateChallengeRequest struct {
 	Image       string          `json:"image" validate:"required,url"`
 	Status      ChallengeStatus `json:"status" validate:"required,oneof=ACTIVE INACTIVE"`
 	Type        ChallengeType   `json:"type" validate:"required,oneof=UPLOAD_PHOTO ANSWER_QUESTION"`
-	Answer      string          `json:"answer" validate:"required_if=Type ANSWER_QUESTION"`
+	Answer      string          `json:"answer"`
 }
 
 type UpdateChallengeResponse struct {

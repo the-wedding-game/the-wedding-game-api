@@ -133,25 +133,17 @@ func (challenge Challenge) checkForInvalidUpdateFields(updateChallengeRequest ty
 		}
 	}
 
+	if challenge.Type == types.UploadPhotoChallenge && updateChallengeRequest.Type == types.AnswerQuestionChallenge && updateChallengeRequest.Answer == "" {
+		return apperrors.NewValidationError("Answer cannot be empty when changing to AnswerQuestion challenge type")
+	}
+
 	return nil
 }
 
 func (challenge Challenge) updateUnderlyingAnswer(oldType types.ChallengeType, answer string) error {
-	if challenge.Type == types.AnswerQuestionChallenge && answer != "" {
-		answer := NewAnswer(challenge.ID, answer)
-
-		// If challenge was previously an AnswerQuestionChallenge, update the answer
-		if oldType == types.AnswerQuestionChallenge {
-			_, err := answer.Update()
-			if err != nil {
-				return fmt.Errorf("error while updating answer for challenge: %w", err)
-			}
-		} else {
-			// If challenge was previously an UploadPhotoChallenge, create a new answer
-			_, err := answer.Save()
-			if err != nil {
-				return fmt.Errorf("error while creating answer for challenge: %w", err)
-			}
+	if challenge.Type == types.AnswerQuestionChallenge {
+		if err := challenge.createOrUpdateAnswer(oldType, answer); err != nil {
+			return fmt.Errorf("error while creating or updating answer: %w", err)
 		}
 	}
 
@@ -159,6 +151,26 @@ func (challenge Challenge) updateUnderlyingAnswer(oldType types.ChallengeType, a
 	if challenge.Type == types.UploadPhotoChallenge && oldType == types.AnswerQuestionChallenge {
 		if err := DeleteAnswer(challenge.ID); err != nil {
 			return err
+		}
+	}
+
+	return nil
+}
+
+func (challenge Challenge) createOrUpdateAnswer(oldType types.ChallengeType, answer string) error {
+	// If challenge was previously an answer question challenge, update the answer
+	if oldType == types.AnswerQuestionChallenge && answer != "" {
+		answer := NewAnswer(challenge.ID, answer)
+		_, err := answer.Update()
+		if err != nil {
+			return fmt.Errorf("error while updating answer for challenge: %w", err)
+		}
+	} else {
+		// If challenge was previously an UploadPhotoChallenge, create a new answer
+		answer := NewAnswer(challenge.ID, answer)
+		_, err := answer.Save()
+		if err != nil {
+			return fmt.Errorf("error while creating answer for challenge: %w", err)
 		}
 	}
 

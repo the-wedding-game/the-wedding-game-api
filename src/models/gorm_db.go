@@ -57,12 +57,14 @@ func (p *database) GetAllChallenges(showInactive bool) ([]Challenge, error) {
 		p.db = p.db.Raw(`
 			SELECT ID, Name, Description, Points, Image, Type, Status
 			FROM challenges
+			ORDER BY ID 
 		`).Scan(&challenges)
 	} else {
 		p.db = p.db.Raw(`
 			SELECT ID, Name, Description, Points, Image, Type, Status
 			FROM challenges
 			WHERE status = ?
+			ORDER BY ID 
 		`, types.ActiveChallenge).Scan(&challenges)
 	}
 
