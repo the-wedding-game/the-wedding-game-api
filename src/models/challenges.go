@@ -165,7 +165,9 @@ func (challenge Challenge) createOrUpdateAnswer(oldType types.ChallengeType, ans
 		if err != nil {
 			return fmt.Errorf("error while updating answer for challenge: %w", err)
 		}
-	} else {
+	}
+
+	if oldType == types.UploadPhotoChallenge {
 		// If challenge was previously an UploadPhotoChallenge, create a new answer
 		answer := NewAnswer(challenge.ID, answer)
 		_, err := answer.Save()

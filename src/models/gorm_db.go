@@ -228,6 +228,29 @@ func (p *database) DeleteAnswer(challengeId uint) error {
 	return nil
 }
 
+func (p *database) GetSubmissionsForChallenge(challengeId uint) ([]types.SubmissionForChallenge, error) {
+	var submissions = make([]types.SubmissionForChallenge, 0)
+	tx := p.db.Raw(`
+		SELECT
+		    submissions.id,
+		    submissions.answer,
+		    submissions.challenge_id AS "ChallengeId",
+		    challenges.name AS "ChallengeName",
+		    submissions.user_id AS "UserId",
+		    users.username
+		FROM submissions
+		INNER JOIN users ON submissions.user_id = users.id
+		INNER JOIN challenges ON submissions.challenge_id = challenges.id
+		WHERE challenge_id = ?
+	`, challengeId).Scan(&submissions)
+
+	if tx.Error != nil {
+		return nil, apperrors.NewDatabaseError(tx.Error.Error())
+	}
+
+	return submissions, nil
+}
+
 func (p *database) GetError() error {
 	err := p.db.Error
 	if err == nil {

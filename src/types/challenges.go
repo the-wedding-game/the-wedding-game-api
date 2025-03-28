@@ -89,3 +89,16 @@ type UpdateChallengeResponse struct {
 	Status      ChallengeStatus `json:"status"`
 	Type        ChallengeType   `json:"type"`
 }
+
+type SubmissionForChallenge struct {
+	Id            uint   `json:"id"`
+	Answer        string `json:"answer"`
+	ChallengeId   uint   `json:"challenge_id"`
+	ChallengeName string `json:"challenge_name"`
+	UserId        uint   `json:"user_id"`
+	Username      string `json:"username"`
+}
+
+type GetSubmissionsResponse struct {
+	Submissions []SubmissionForChallenge `json:"submissions"`
+}
