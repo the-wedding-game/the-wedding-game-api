@@ -63,10 +63,11 @@ func setupTestDb() {
 	ready := false
 	for i := 0; i < 10; i++ {
 		db, err := gorm.Open(postgres.Open(dbURI))
-		conn, _ := db.DB()
-		defer conn.Close()
 
 		if err == nil {
+			conn, _ := db.DB()
+			_ = conn.Close()
+
 			ready = true
 			log.Println("Database is ready!")
 			err := db.Migrator().DropTable(&models.User{}, &models.AccessToken{}, &models.Challenge{}, &models.Answer{}, &models.Submission{})

@@ -235,7 +235,7 @@ func (m *MockDB) GetSubmissionsForChallenge(challengeId uint) ([]types.Submissio
 	return submissions, nil
 }
 
-func (m *MockDB) GetAnswerForChallenge(challengeId uint) (string, error) {
+func (m *MockDB) GetAnswerForChallenge(_ uint) (string, error) {
 	if m.Error != nil {
 		return "", apperrors.NewDatabaseError(m.Error.Error())
 	}
