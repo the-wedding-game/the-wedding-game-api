@@ -278,7 +278,7 @@ func TestGetSubmissionsForChallenge(t *testing.T) {
 	}
 
 	if len(submissions) != 1 {
-		t.Errorf("expected 2 but got %d", len(submissions))
+		t.Errorf("expected 1 but got %d", len(submissions))
 		return
 	}
 }
