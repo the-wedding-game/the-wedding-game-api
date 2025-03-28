@@ -2860,7 +2860,7 @@ func TestUpdateChallengeUploadToAnswerNoAnswer(t *testing.T) {
 
 	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/"+strconv.Itoa(int(challenge.ID)), updateChallengeRequest, accessToken.Token)
 	if statusCode != http.StatusBadRequest {
-		t.Errorf("Expected status code 200, got %v", statusCode)
+		t.Errorf("Expected status code 400, got %v", statusCode)
 	}
 
 	expectedResponse := "{\"message\":\"Answer cannot be empty when changing to AnswerQuestion challenge type\",\"status\":\"error\"}"
