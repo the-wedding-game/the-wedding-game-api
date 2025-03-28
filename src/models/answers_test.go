@@ -298,3 +298,38 @@ func TestDeleteAnswerError(t *testing.T) {
 		t.Errorf("expected test_error but got %s", err.Error())
 	}
 }
+
+func TestGetAnswer(t *testing.T) {
+	SetupMockDb()
+
+	createTestChallenge(testChallenge123)
+	createTestAnswer(testAnswer123)
+
+	answer, err := GetAnswer(testAnswer123.ChallengeID)
+	if err != nil {
+		t.Errorf("expected nil but got %s", err.Error())
+		return
+	}
+
+	if answer != "mock_answer" {
+		t.Errorf("expected %s but got %s", testAnswer123.Value, answer)
+	}
+}
+
+func TestGetAnswerError(t *testing.T) {
+	mockDB := SetupMockDb()
+	mockDB.Error = errors.New("test_error")
+
+	_, err := GetAnswer(testAnswer123.ChallengeID)
+	if err == nil {
+		t.Errorf("expected error but got nil")
+		return
+	}
+
+	if !apperrors.IsDatabaseError(err) {
+		t.Errorf("expected database error but got %s", err.Error())
+	}
+	if err.Error() != "test_error" {
+		t.Errorf("expected test_error but got %s", err.Error())
+	}
+}

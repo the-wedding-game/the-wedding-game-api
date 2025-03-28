@@ -3096,3 +3096,390 @@ func TestGetSubmissionsDatabaseError(t *testing.T) {
 		return
 	}
 }
+
+func TestGetSubmissionsWithInvalidToken(t *testing.T) {
+	models.ResetConnection()
+	deleteAllChallenges()
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err := challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	statusCode, responseBody := makeRequestWithToken("GET", "/challenges/"+strconv.Itoa(int(challenge.ID))+"/submissions", nil, "invalid_token")
+	if statusCode != http.StatusForbidden {
+		t.Errorf("Expected status code 401, got %v", statusCode)
+		return
+	}
+
+	expectedResponse := "{\"message\":\"access denied\",\"status\":\"error\"}"
+	if responseBody != expectedResponse {
+		t.Errorf("Expected response %v, got %v", expectedResponse, responseBody)
+		return
+	}
+}
+
+func TestGetSubmissionsWithoutToken(t *testing.T) {
+	models.ResetConnection()
+	deleteAllChallenges()
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err := challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	statusCode, responseBody := makeRequest("GET", "/challenges/"+strconv.Itoa(int(challenge.ID))+"/submissions", nil)
+	if statusCode != http.StatusUnauthorized {
+		t.Errorf("Expected status code 401, got %v", statusCode)
+		return
+	}
+
+	expectedResponse := "{\"message\":\"access token is not provided\",\"status\":\"error\"}"
+	if responseBody != expectedResponse {
+		t.Errorf("Expected response %v, got %v", expectedResponse, responseBody)
+		return
+	}
+}
+
+func TestGetAnswer(t *testing.T) {
+	models.ResetConnection()
+	deleteAllChallenges()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.AnswerQuestionChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err = challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	answer := models.Answer{
+		ChallengeID: challenge.ID,
+		Value:       "test_answer_23487",
+	}
+	answer, err = answer.Save()
+	if err != nil {
+		t.Errorf("Error saving answer: %v", err)
+		return
+	}
+
+	statusCode, responseBody := makeRequestWithToken("GET", "/challenges/"+strconv.Itoa(int(challenge.ID))+"/answer", nil, accessToken.Token)
+	if statusCode != http.StatusOK {
+		t.Errorf("Expected status code 200, got %v", statusCode)
+		return
+	}
+
+	var expectedResponse = types.GetAnswerResponse{
+		Answer: answer.Value,
+	}
+	var response types.GetAnswerResponse
+	err = json.Unmarshal([]byte(responseBody), &response)
+	if err != nil {
+		t.Errorf("Error unmarshalling response: %v", err)
+		return
+	}
+
+	if !reflect.DeepEqual(response, expectedResponse) {
+		t.Errorf("Expected response %v, got %v", expectedResponse, responseBody)
+		return
+	}
+}
+
+func TestGetAnswerWithoutAccessToken(t *testing.T) {
+	models.ResetConnection()
+	deleteAllChallenges()
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.AnswerQuestionChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err := challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	statusCode, responseBody := makeRequest("GET", "/challenges/"+strconv.Itoa(int(challenge.ID))+"/answer", nil)
+	if statusCode != http.StatusUnauthorized {
+		t.Errorf("Expected status code 401, got %v", statusCode)
+		return
+	}
+
+	expectedResponse := "{\"message\":\"access token is not provided\",\"status\":\"error\"}"
+	if responseBody != expectedResponse {
+		t.Errorf("Expected response %v, got %v", expectedResponse, responseBody)
+		return
+	}
+}
+
+func TestGetAnswerWithInvalidAccessToken(t *testing.T) {
+	models.ResetConnection()
+	deleteAllChallenges()
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.AnswerQuestionChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err := challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	statusCode, responseBody := makeRequestWithToken("GET", "/challenges/"+strconv.Itoa(int(challenge.ID))+"/answer", nil, "invalid_token")
+	if statusCode != http.StatusForbidden {
+		t.Errorf("Expected status code 403, got %v", statusCode)
+		return
+	}
+
+	expectedResponse := "{\"message\":\"access denied\",\"status\":\"error\"}"
+	if responseBody != expectedResponse {
+		t.Errorf("Expected response %v, got %v", expectedResponse, responseBody)
+		return
+	}
+}
+
+func TestGetAnswerWithNonAdminAccessToken(t *testing.T) {
+	models.ResetConnection()
+	deleteAllChallenges()
+
+	_, accessToken, err := createUserAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.AnswerQuestionChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err = challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	answer := models.Answer{
+		ChallengeID: challenge.ID,
+		Value:       "test_answer_23487",
+	}
+	answer, err = answer.Save()
+	if err != nil {
+		t.Errorf("Error saving answer: %v", err)
+		return
+	}
+
+	statusCode, responseBody := makeRequestWithToken("GET", "/challenges/"+strconv.Itoa(int(challenge.ID))+"/answer", nil, accessToken.Token)
+	if statusCode != http.StatusForbidden {
+		t.Errorf("Expected status code 200, got %v", statusCode)
+		return
+	}
+
+	expectedResponse := "{\"message\":\"access denied\",\"status\":\"error\"}"
+	if responseBody != expectedResponse {
+		t.Errorf("Expected response %v, got %v", expectedResponse, responseBody)
+		return
+	}
+}
+
+func TestGetAnswerWithChallengeDoesNotExist(t *testing.T) {
+	models.ResetConnection()
+	deleteAllChallenges()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	statusCode, responseBody := makeRequestWithToken("GET", "/challenges/999999/answer", nil, accessToken.Token)
+	if statusCode != http.StatusNotFound {
+		t.Errorf("Expected status code 404, got %v", statusCode)
+		return
+	}
+
+	expectedResponse := "{\"message\":\"Answer with Challenge with key 999999 not found.\",\"status\":\"error\"}"
+	if responseBody != expectedResponse {
+		t.Errorf("Expected response %v, got %v", expectedResponse, responseBody)
+		return
+	}
+}
+
+func TestGetAnswerWithChallengeIsNotAnswerQuestion(t *testing.T) {
+	models.ResetConnection()
+	deleteAllChallenges()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err = challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	statusCode, responseBody := makeRequestWithToken("GET", "/challenges/"+strconv.Itoa(int(challenge.ID))+"/answer", nil, accessToken.Token)
+	if statusCode != http.StatusNotFound {
+		t.Errorf("Expected status code 404, got %v", statusCode)
+		return
+	}
+
+	expectedResponse := "{\"message\":\"Answer with Challenge with key 7 not found.\",\"status\":\"error\"}"
+	if responseBody != expectedResponse {
+		t.Errorf("Expected response %v, got %v", expectedResponse, responseBody)
+		return
+	}
+}
+
+func TestGetAnswerAnswerDoesNotExist(t *testing.T) {
+	models.ResetConnection()
+	deleteAllChallenges()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.AnswerQuestionChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err = challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	statusCode, responseBody := makeRequestWithToken("GET", "/challenges/"+strconv.Itoa(int(challenge.ID))+"/answer", nil, accessToken.Token)
+	if statusCode != http.StatusNotFound {
+		t.Errorf("Expected status code 404, got %v", statusCode)
+		return
+	}
+
+	expectedResponse := "{\"message\":\"Answer with Challenge with key " + strconv.Itoa(int(challenge.ID)) + " not found.\",\"status\":\"error\"}"
+	if responseBody != expectedResponse {
+		t.Errorf("Expected response %v, got %v", expectedResponse, responseBody)
+		return
+	}
+}
+
+func TestGetAnswerWithInvalidChallengeId(t *testing.T) {
+	models.ResetConnection()
+	deleteAllChallenges()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	statusCode, responseBody := makeRequestWithToken("GET", "/challenges/invalid/answer", nil, accessToken.Token)
+	if statusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code 400, got %v", statusCode)
+		return
+	}
+
+	expectedResponse := "{\"message\":\"invalid challenge id\",\"status\":\"error\"}"
+	if responseBody != expectedResponse {
+		t.Errorf("Expected response %v, got %v", expectedResponse, responseBody)
+		return
+	}
+}
+
+func TestGetAnswerWithDatabaseError(t *testing.T) {
+	models.ResetConnection()
+	deleteAllChallenges()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.AnswerQuestionChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err = challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	dropAnswersTable()
+	defer setupTestDb()
+
+	statusCode, responseBody := makeRequestWithToken("GET", "/challenges/"+strconv.Itoa(int(challenge.ID))+"/answer", nil, accessToken.Token)
+	if statusCode != http.StatusInternalServerError {
+		t.Errorf("Expected status code 500, got %v", statusCode)
+		return
+	}
+
+	expectedResponse := "{\"message\":\"An unexpected error occurred.\",\"status\":\"error\"}"
+	if responseBody != expectedResponse {
+		t.Errorf("Expected response %v, got %v", expectedResponse, responseBody)
+		return
+	}
+}

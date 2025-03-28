@@ -1014,3 +1014,50 @@ func TestValidateGetSubmissionsRequestWithInvalidId(t *testing.T) {
 		t.Error("Expected error message to be", expectedError, "got", err.Error())
 	}
 }
+
+func TestValidateGetAnswerRequest(t *testing.T) {
+	params := map[string]string{"id": "1"}
+	c := generateRequestWithParamsOnly(params)
+
+	id, err := ValidateGetAnswerRequest(c)
+	if err != nil {
+		t.Error("Expected no error, got", err)
+		return
+	}
+
+	if id != 1 {
+		t.Error("Expected id to be 1, got", id)
+	}
+}
+
+func TestValidateGetAnswerRequestWithEmptyParams(t *testing.T) {
+	params := map[string]string{}
+	c := generateRequestWithParamsOnly(params)
+
+	_, err := ValidateGetAnswerRequest(c)
+	if err == nil {
+		t.Error("Expected error, got nil")
+		return
+	}
+
+	expectedError := "invalid challenge id"
+	if err.Error() != expectedError {
+		t.Error("Expected error message to be", expectedError, "got", err.Error())
+	}
+}
+
+func TestValidateGetAnswerRequestWithInvalidId(t *testing.T) {
+	params := map[string]string{"id": "invalid"}
+	c := generateRequestWithParamsOnly(params)
+
+	_, err := ValidateGetAnswerRequest(c)
+	if err == nil {
+		t.Error("Expected error, got nil")
+		return
+	}
+
+	expectedError := "invalid challenge id"
+	if err.Error() != expectedError {
+		t.Error("Expected error message to be", expectedError, "got", err.Error())
+	}
+}
