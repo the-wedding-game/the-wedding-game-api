@@ -65,9 +65,6 @@ func setupTestDb() {
 		db, err := gorm.Open(postgres.Open(dbURI))
 
 		if err == nil {
-			conn, _ := db.DB()
-			_ = conn.Close()
-
 			ready = true
 			log.Println("Database is ready!")
 			err := db.Migrator().DropTable(&models.User{}, &models.AccessToken{}, &models.Challenge{}, &models.Answer{}, &models.Submission{})
@@ -81,6 +78,9 @@ func setupTestDb() {
 				panic(err)
 				return
 			}
+
+			conn, _ := db.DB()
+			_ = conn.Close()
 			break
 		}
 		log.Printf("Waiting for database to be ready... (%d/10)", i+1)
