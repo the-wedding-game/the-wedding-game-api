@@ -71,6 +71,9 @@ func deleteAllChallenges() {
 		log.Fatalf("Error connecting to database: %v", err)
 	}
 
+	db, _ := database.DB()
+	defer db.Close()
+
 	database.Exec(`DELETE FROM answers`)
 	database.Exec(`DELETE FROM submissions`)
 	database.Exec(`DELETE FROM challenges`)
