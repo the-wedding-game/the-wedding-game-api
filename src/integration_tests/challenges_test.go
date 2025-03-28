@@ -3,8 +3,8 @@ package integrationtests
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
+	"reflect"
 	"strconv"
 	"testing"
 	"the-wedding-game-api/models"
@@ -1777,7 +1777,6 @@ func TestUpdateChallenge(t *testing.T) {
 	}
 
 	statusCode, responseBody := makeRequestWithToken("PUT", "/challenges/"+strconv.Itoa(int(challenge.ID)), updateChallengeRequest, accessToken.Token)
-	fmt.Println(responseBody)
 
 	if statusCode != http.StatusOK {
 		t.Errorf("Expected status code 200, got %v", statusCode)
@@ -2865,6 +2864,233 @@ func TestUpdateChallengeUploadToAnswerNoAnswer(t *testing.T) {
 	}
 
 	expectedResponse := "{\"message\":\"Answer cannot be empty when changing to AnswerQuestion challenge type\",\"status\":\"error\"}"
+	if responseBody != expectedResponse {
+		t.Errorf("Expected response %v, got %v", expectedResponse, responseBody)
+		return
+	}
+}
+
+func TestGetSubmissions(t *testing.T) {
+	models.ResetConnection()
+	deleteAllChallenges()
+
+	user1, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	user2, _, err := createUserAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err = challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	submission1 := models.NewSubmission(accessToken.UserID, challenge.ID, "test_answer")
+	_, err = submission1.Save()
+	if err != nil {
+		t.Errorf("Error saving submission: %v", err)
+		return
+	}
+
+	submission2 := models.NewSubmission(user2.ID, challenge.ID, "test_answer2")
+	_, err = submission2.Save()
+	if err != nil {
+		t.Errorf("Error saving submission: %v", err)
+		return
+	}
+
+	statusCode, responseBody := makeRequestWithToken("GET", "/challenges/"+strconv.Itoa(int(challenge.ID))+"/submissions", nil, accessToken.Token)
+	if statusCode != http.StatusOK {
+		t.Errorf("Expected status code 200, got %v", statusCode)
+		return
+	}
+
+	var response types.GetSubmissionsResponse
+	err = json.Unmarshal([]byte(responseBody), &response)
+	if err != nil {
+		t.Errorf("Error unmarshalling response: %v", err)
+		return
+	}
+
+	var expectedSubmission1 = types.SubmissionForChallenge{
+		Id:            submission1.ID,
+		Answer:        submission1.Answer,
+		ChallengeId:   challenge.ID,
+		ChallengeName: challenge.Name,
+		UserId:        user1.ID,
+		Username:      user1.Username,
+	}
+
+	var expectedSubmission2 = types.SubmissionForChallenge{
+		Id:            submission2.ID,
+		Answer:        submission2.Answer,
+		ChallengeId:   challenge.ID,
+		ChallengeName: challenge.Name,
+		UserId:        user2.ID,
+		Username:      user2.Username,
+	}
+
+	var expectedResponse = types.GetSubmissionsResponse{
+		Submissions: []types.SubmissionForChallenge{expectedSubmission1, expectedSubmission2},
+	}
+
+	if !reflect.DeepEqual(response, expectedResponse) {
+		t.Errorf("Expected response %v, got %v", expectedResponse, response)
+		return
+	}
+}
+
+func TestGetSubmissionsWithInvalid(t *testing.T) {
+	models.ResetConnection()
+	deleteAllChallenges()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	statusCode, responseBody := makeRequestWithToken("GET", "/challenges/invalid/submissions", nil, accessToken.Token)
+	if statusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code 400, got %v", statusCode)
+		return
+	}
+
+	expectedResponse := "{\"message\":\"invalid challenge id\",\"status\":\"error\"}"
+	if responseBody != expectedResponse {
+		t.Errorf("Expected response %v, got %v", expectedResponse, responseBody)
+		return
+	}
+}
+
+func TestGetSubmissionsWithChallengeDoesNotExist(t *testing.T) {
+	models.ResetConnection()
+	deleteAllChallenges()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	statusCode, responseBody := makeRequestWithToken("GET", "/challenges/999999/submissions", nil, accessToken.Token)
+	if statusCode != http.StatusOK {
+		t.Errorf("Expected status code 200, got %v", statusCode)
+		return
+	}
+
+	//expect empty
+	var expectedResponse = types.GetSubmissionsResponse{
+		Submissions: []types.SubmissionForChallenge{},
+	}
+	var response types.GetSubmissionsResponse
+	err = json.Unmarshal([]byte(responseBody), &response)
+	if err != nil {
+		t.Errorf("Error unmarshalling response: %v", err)
+		return
+	}
+
+	if !reflect.DeepEqual(response, expectedResponse) {
+		t.Errorf("Expected response %v, got %v", expectedResponse, responseBody)
+		return
+	}
+}
+
+func TestGetSubmissionsNoSubmissions(t *testing.T) {
+	models.ResetConnection()
+	deleteAllChallenges()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err = challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	statusCode, responseBody := makeRequestWithToken("GET", "/challenges/"+strconv.Itoa(int(challenge.ID))+"/submissions", nil, accessToken.Token)
+	if statusCode != http.StatusOK {
+		t.Errorf("Expected status code 200, got %v", statusCode)
+		return
+	}
+
+	var expectedResponse = types.GetSubmissionsResponse{
+		Submissions: []types.SubmissionForChallenge{},
+	}
+	var response types.GetSubmissionsResponse
+	err = json.Unmarshal([]byte(responseBody), &response)
+	if err != nil {
+		t.Errorf("Error unmarshalling response: %v", err)
+		return
+	}
+
+	if !reflect.DeepEqual(response, expectedResponse) {
+		t.Errorf("Expected response %v, got %v", expectedResponse, responseBody)
+		return
+	}
+}
+
+func TestGetSubmissionsDatabaseError(t *testing.T) {
+	models.ResetConnection()
+	deleteAllChallenges()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err = challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	dropSubmissionsTable()
+	defer setupTestDb()
+
+	statusCode, responseBody := makeRequestWithToken("GET", "/challenges/"+strconv.Itoa(int(challenge.ID))+"/submissions", nil, accessToken.Token)
+	if statusCode != http.StatusInternalServerError {
+		t.Errorf("Expected status code 500, got %v", statusCode)
+		return
+	}
+
+	expectedResponse := "{\"message\":\"An unexpected error occurred.\",\"status\":\"error\"}"
 	if responseBody != expectedResponse {
 		t.Errorf("Expected response %v, got %v", expectedResponse, responseBody)
 		return

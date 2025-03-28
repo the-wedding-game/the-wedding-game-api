@@ -80,6 +80,29 @@ func deleteAllChallenges() {
 	}
 }
 
+func dropSubmissionsTable() {
+	dbURI := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_NAME"),
+		os.Getenv("DB_PASS"),
+	)
+
+	database, err := gorm.Open(postgres.Open(dbURI))
+	if err != nil {
+		log.Fatalf("Error connecting to database: %v", err)
+	}
+	db, _ := database.DB()
+	defer db.Close()
+
+	database.Exec(`DROP TABLE IF EXISTS submissions`)
+
+	if database.Error != nil {
+		log.Fatalf("Error dropping submissions table: %v", database.Error)
+	}
+}
+
 func makeRequest(method string, path string, bodyObj interface{}) (int, string) {
 	body, err := json.Marshal(bodyObj)
 	if err != nil {
