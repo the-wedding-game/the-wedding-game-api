@@ -237,3 +237,24 @@ func GetSubmissions(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, response)
 	return
 }
+
+func GetAnswer(c *gin.Context) {
+	challengeId, err := validators.ValidateGetAnswerRequest(c)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	answer, err := models.GetAnswer(challengeId)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	response := types.GetAnswerResponse{
+		Answer: answer,
+	}
+
+	c.IndentedJSON(http.StatusOK, response)
+	return
+}

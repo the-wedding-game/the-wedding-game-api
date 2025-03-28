@@ -2,6 +2,7 @@ package integrationtests
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"gorm.io/driver/postgres"
@@ -72,11 +73,16 @@ func deleteAllChallenges() {
 	}
 
 	db, _ := database.DB()
-	defer db.Close()
+	defer func(db *sql.DB) {
+		err := db.Close()
+		if err != nil {
+			log.Fatalf("Error closing database connection: %v", err)
+		}
+	}(db)
 
-	database.Exec(`DELETE FROM answers`)
-	database.Exec(`DELETE FROM submissions`)
-	database.Exec(`DELETE FROM challenges`)
+	database.Exec(`DELETE FROM answers WHERE id > 0`)
+	database.Exec(`DELETE FROM submissions WHERE id > 0`)
+	database.Exec(`DELETE FROM challenges WHERE id > 0`)
 
 	if database.Error != nil {
 		log.Fatalf("Error deleting challenges: %v", database.Error)
@@ -97,12 +103,45 @@ func dropSubmissionsTable() {
 		log.Fatalf("Error connecting to database: %v", err)
 	}
 	db, _ := database.DB()
-	defer db.Close()
+	defer func(db *sql.DB) {
+		err := db.Close()
+		if err != nil {
+			log.Fatalf("Error closing database connection: %v", err)
+		}
+	}(db)
 
 	database.Exec(`DROP TABLE IF EXISTS submissions`)
 
 	if database.Error != nil {
 		log.Fatalf("Error dropping submissions table: %v", database.Error)
+	}
+}
+
+func dropAnswersTable() {
+	dbURI := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_NAME"),
+		os.Getenv("DB_PASS"),
+	)
+
+	database, err := gorm.Open(postgres.Open(dbURI))
+	if err != nil {
+		log.Fatalf("Error connecting to database: %v", err)
+	}
+	db, _ := database.DB()
+	defer func(db *sql.DB) {
+		err := db.Close()
+		if err != nil {
+			log.Fatalf("Error closing database connection: %v", err)
+		}
+	}(db)
+
+	database.Exec(`DROP TABLE IF EXISTS answers`)
+
+	if database.Error != nil {
+		log.Fatalf("Error dropping answers table: %v", database.Error)
 	}
 }
 

@@ -100,3 +100,12 @@ func ValidateGetSubmissionsRequest(c *gin.Context) (uint, error) {
 
 	return uint(id), nil
 }
+
+func ValidateGetAnswerRequest(c *gin.Context) (uint, error) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return 0, apperrors.NewValidationError(constants.InvalidChallengeIDError)
+	}
+
+	return uint(id), nil
+}

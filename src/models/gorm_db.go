@@ -251,6 +251,25 @@ func (p *database) GetSubmissionsForChallenge(challengeId uint) ([]types.Submiss
 	return submissions, nil
 }
 
+func (p *database) GetAnswerForChallenge(challengeId uint) (string, error) {
+	var answer string
+	tx := p.db.Raw(`
+		SELECT value
+		FROM answers
+		WHERE challenge_id = ?
+	`, challengeId).Scan(&answer)
+
+	if tx.Error != nil {
+		return "", apperrors.NewDatabaseError(tx.Error.Error())
+	}
+
+	if tx.RowsAffected == 0 {
+		return "", apperrors.NewRecordNotFoundError(fmt.Sprintf("Answer with Challenge ID %d not found", challengeId))
+	}
+
+	return answer, nil
+}
+
 func (p *database) GetError() error {
 	err := p.db.Error
 	if err == nil {

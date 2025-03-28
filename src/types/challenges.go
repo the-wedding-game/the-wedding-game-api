@@ -102,3 +102,7 @@ type SubmissionForChallenge struct {
 type GetSubmissionsResponse struct {
 	Submissions []SubmissionForChallenge `json:"submissions"`
 }
+
+type GetAnswerResponse struct {
+	Answer string `json:"answer"`
+}

@@ -63,8 +63,6 @@ func setupTestDb() {
 	ready := false
 	for i := 0; i < 10; i++ {
 		db, err := gorm.Open(postgres.Open(dbURI))
-		conn, _ := db.DB()
-		defer conn.Close()
 
 		if err == nil {
 			ready = true
@@ -80,6 +78,9 @@ func setupTestDb() {
 				panic(err)
 				return
 			}
+
+			conn, _ := db.DB()
+			_ = conn.Close()
 			break
 		}
 		log.Printf("Waiting for database to be ready... (%d/10)", i+1)

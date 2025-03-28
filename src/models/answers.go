@@ -86,3 +86,16 @@ func DeleteAnswer(challengeId uint) error {
 	conn := GetConnection()
 	return conn.DeleteAnswer(challengeId)
 }
+
+func GetAnswer(challengeId uint) (string, error) {
+	conn := GetConnection()
+	answer, err := conn.GetAnswerForChallenge(challengeId)
+	if err != nil {
+		if apperrors.IsRecordNotFoundError(err) {
+			return "", apperrors.NewNotFoundError("Answer with Challenge", strconv.Itoa(int(challengeId)))
+		}
+		return "", err
+	}
+
+	return answer, nil
+}
