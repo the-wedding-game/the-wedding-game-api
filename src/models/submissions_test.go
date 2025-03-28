@@ -257,3 +257,57 @@ func TestGetLeaderboardError(t *testing.T) {
 		t.Errorf("expected test_error but got %s", err.Error())
 	}
 }
+
+func TestGetSubmissionsForChallenge(t *testing.T) {
+	mockDb := SetupMockDb()
+	_, err1 := mockDb.AddSubmission(testSubmission1)
+	if err1 != nil {
+		t.Errorf("expected nil but got %v", err1)
+		return
+	}
+	_, err2 := mockDb.AddSubmission(testSubmission2)
+	if err2 != nil {
+		t.Errorf("expected nil but got %v", err2)
+		return
+	}
+
+	submissions, err := GetSubmissionsForChallenge(testSubmission1.ChallengeID)
+	if err != nil {
+		t.Errorf("expected nil but got %v", err)
+		return
+	}
+
+	if len(submissions) != 1 {
+		t.Errorf("expected 1 but got %d", len(submissions))
+		return
+	}
+}
+
+func TestGetSubmissionsForChallengeEmpty(t *testing.T) {
+	SetupMockDb()
+
+	submissions, err := GetSubmissionsForChallenge(testSubmission1.ChallengeID)
+	if err != nil {
+		t.Errorf("expected nil but got %v", err)
+		return
+	}
+
+	if len(submissions) != 0 {
+		t.Errorf("expected 0 but got %d", len(submissions))
+	}
+}
+
+func TestGetSubmissionsForChallengeError(t *testing.T) {
+	mockDb := SetupMockDb()
+	mockDb.Error = errors.New("test_error")
+
+	_, err := GetSubmissionsForChallenge(testSubmission1.ChallengeID)
+	if err == nil {
+		t.Errorf("expected error but got nil")
+		return
+	}
+
+	if !apperrors.IsDatabaseError(err) {
+		t.Errorf("expected true but got false")
+	}
+}

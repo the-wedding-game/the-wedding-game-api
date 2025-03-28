@@ -62,3 +62,13 @@ func GetLeaderboard() ([]types.LeaderboardEntry, error) {
 	}
 	return leaderboard, nil
 }
+
+func GetSubmissionsForChallenge(challengeId uint) ([]types.SubmissionForChallenge, error) {
+	conn := GetConnection()
+	submissions, err := conn.GetSubmissionsForChallenge(challengeId)
+	if err != nil {
+		return nil, err
+	}
+
+	return submissions, nil
+}

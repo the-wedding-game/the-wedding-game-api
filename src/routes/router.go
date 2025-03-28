@@ -20,6 +20,7 @@ func GetRouter() *gin.Engine {
 	router.POST("/challenges", middleware.IsAdmin, CreateChallenge)
 	router.GET("/challenges", middleware.IsLoggedIn, GetAllChallenges)
 	router.POST("/challenges/:id/verify", middleware.IsLoggedIn, VerifyAnswer)
+	router.GET("/challenges/:id/submissions", middleware.IsLoggedIn, GetSubmissions)
 	router.PUT("/challenges/:id", middleware.IsAdmin, UpdateChallenge)
 
 	router.POST("/auth/login", Login)

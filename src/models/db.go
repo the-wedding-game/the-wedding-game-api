@@ -20,6 +20,7 @@ type DatabaseInterface interface {
 	UpdateChallenge(challengeId Challenge, updateChallengeRequest types.UpdateChallengeRequest) (Challenge, error)
 	UpdateAnswer(challengeId uint, answer string) (Answer, error)
 	DeleteAnswer(challengeId uint) error
+	GetSubmissionsForChallenge(challengeId uint) ([]types.SubmissionForChallenge, error)
 	GetError() error
 }
 

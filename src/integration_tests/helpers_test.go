@@ -71,12 +71,38 @@ func deleteAllChallenges() {
 		log.Fatalf("Error connecting to database: %v", err)
 	}
 
+	db, _ := database.DB()
+	defer db.Close()
+
 	database.Exec(`DELETE FROM answers`)
 	database.Exec(`DELETE FROM submissions`)
 	database.Exec(`DELETE FROM challenges`)
 
 	if database.Error != nil {
 		log.Fatalf("Error deleting challenges: %v", database.Error)
+	}
+}
+
+func dropSubmissionsTable() {
+	dbURI := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s",
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_NAME"),
+		os.Getenv("DB_PASS"),
+	)
+
+	database, err := gorm.Open(postgres.Open(dbURI))
+	if err != nil {
+		log.Fatalf("Error connecting to database: %v", err)
+	}
+	db, _ := database.DB()
+	defer db.Close()
+
+	database.Exec(`DROP TABLE IF EXISTS submissions`)
+
+	if database.Error != nil {
+		log.Fatalf("Error dropping submissions table: %v", database.Error)
 	}
 }
 

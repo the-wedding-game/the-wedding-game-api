@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"reflect"
+	"strconv"
 	"strings"
 	apperrors "the-wedding-game-api/errors"
 	"the-wedding-game-api/types"
@@ -210,4 +211,26 @@ func (m *MockDB) AddSubmission(submission Submission) (Submission, error) {
 
 	m.submissions = append(m.submissions, submission)
 	return submission, nil
+}
+
+func (m *MockDB) GetSubmissionsForChallenge(challengeId uint) ([]types.SubmissionForChallenge, error) {
+	if m.Error != nil {
+		return nil, apperrors.NewDatabaseError(m.Error.Error())
+	}
+
+	var submissions []types.SubmissionForChallenge
+	for _, submission := range m.submissions {
+		if submission.ChallengeID == challengeId {
+			submissions = append(submissions, types.SubmissionForChallenge{
+				Id:            submission.ID,
+				Answer:        submission.Answer,
+				ChallengeId:   submission.ChallengeID,
+				ChallengeName: "Challenge Name",
+				UserId:        submission.UserID,
+				Username:      "user" + strconv.Itoa(int(submission.UserID)),
+			})
+		}
+	}
+
+	return submissions, nil
 }
