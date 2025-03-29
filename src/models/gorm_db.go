@@ -77,9 +77,9 @@ func (p *database) GetPointsForUser(userId uint) (uint, error) {
 		SELECT SUM(challenges.points) AS points
 		FROM submissions
 		INNER JOIN challenges ON submissions.challenge_id = challenges.id
-		WHERE submissions.user_id = ?
+		WHERE submissions.user_id = ? AND challenges.status = ?
 		GROUP BY submissions.user_id
-		`, userId).Scan(&points)
+		`, userId, types.ActiveChallenge).Scan(&points)
 
 	if tx.Error != nil {
 		return 0, apperrors.NewDatabaseError(tx.Error.Error())
@@ -95,9 +95,10 @@ func (p *database) GetLeaderboard() ([]types.LeaderboardEntry, error) {
 		FROM submissions
 		INNER JOIN users ON submissions.user_id = users.id
 		INNER JOIN challenges ON submissions.challenge_id = challenges.id
+		WHERE challenges.status = ?
 		GROUP BY users.username
 		ORDER BY points DESC
-		`).Scan(&leaderboard)
+		`, types.ActiveChallenge).Scan(&leaderboard)
 
 	if tx.Error != nil {
 		return nil, apperrors.NewDatabaseError(tx.Error.Error())

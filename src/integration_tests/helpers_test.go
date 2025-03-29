@@ -298,6 +298,24 @@ func createChallengeWithPoints(points uint) (models.Challenge, error) {
 	return challenge, nil
 }
 
+func createInactiveChallengeWithPoints(points uint) (models.Challenge, error) {
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      points,
+		Image:       "test_image",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.InactiveChallenge,
+	}
+
+	challenge, err := challenge.Save()
+	if err != nil {
+		return models.Challenge{}, err
+	}
+
+	return challenge, nil
+}
+
 func completeChallenge(challengeID uint, userID uint) error {
 	submission := models.Submission{
 		ChallengeID: challengeID,
