@@ -52,6 +52,55 @@ func TestGetCurrentUserPoints(t *testing.T) {
 	}
 }
 
+func TestGetCurrentUserPointsWithInactiveChallenges(t *testing.T) {
+	if err := resetDatabase(); err != nil {
+		t.Errorf("Error resetting database: %v", err)
+		return
+	}
+
+	user, accessToken, err := createUserAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	challenge1, err1 := createChallengeWithPoints(100)
+	challenge2, err2 := createInactiveChallengeWithPoints(200)
+	challenge3, err3 := createChallengeWithPoints(300)
+	if err1 != nil || err2 != nil || err3 != nil {
+		t.Errorf("Error creating challenges")
+		return
+	}
+
+	err1 = completeChallenge(challenge1.ID, user.ID)
+	err2 = completeChallenge(challenge2.ID, user.ID)
+	err3 = completeChallenge(challenge3.ID, user.ID)
+	if err1 != nil || err2 != nil || err3 != nil {
+		t.Errorf("Error completing challenges")
+		return
+	}
+
+	statusCode, body := makeRequestWithToken("GET", "/points/me", nil, accessToken.Token)
+	if statusCode != 200 {
+		t.Errorf("Invalid status code: %v", statusCode)
+	}
+
+	var response types.CurrentUserPointsResponse
+	decoder := json.NewDecoder(bytes.NewReader([]byte(body)))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&response); err != nil {
+		t.Errorf("Error unmarshalling response: %v", err)
+		return
+	}
+
+	expectedResponse := types.CurrentUserPointsResponse{
+		Points: 400,
+	}
+	if response != expectedResponse {
+		t.Errorf("Expected response: %v, got: %v", expectedResponse, response)
+	}
+}
+
 func TestGetCurrentUserPointsNoPoints(t *testing.T) {
 	_, accessToken, err := createUserAndGetAccessToken()
 	if err != nil {
@@ -209,6 +258,63 @@ func TestGetLeaderboard2(t *testing.T) {
 			{Username: user2.Username, Points: 600},
 			{Username: user3.Username, Points: 300},
 			{Username: user1.Username, Points: 100},
+		},
+	}
+	if !reflect.DeepEqual(response, expectedResponse) {
+		t.Errorf("Expected response: %v, got: %v", expectedResponse, response)
+	}
+}
+
+func TestGetLeaderboardWithInactiveChallenges(t *testing.T) {
+	if err := resetDatabase(); err != nil {
+		t.Errorf("Error resetting database: %v", err)
+		return
+	}
+
+	challenge1, err1 := createChallengeWithPoints(100)
+	challenge2, err2 := createInactiveChallengeWithPoints(200)
+	challenge3, err3 := createChallengeWithPoints(300)
+	if err1 != nil || err2 != nil || err3 != nil {
+		t.Errorf("Error creating challenges")
+		return
+	}
+
+	user1, _, err1 := createUserAndGetAccessToken()
+	user2, _, err2 := createUserAndGetAccessToken()
+	user3, accessToken, err3 := createUserAndGetAccessToken()
+	if err1 != nil || err2 != nil || err3 != nil {
+		t.Errorf("Error creating users")
+		return
+	}
+
+	err1 = completeChallenge(challenge1.ID, user1.ID)
+	err2 = completeChallenge(challenge2.ID, user2.ID)
+	err3 = completeChallenge(challenge3.ID, user3.ID)
+	err4 := completeChallenge(challenge1.ID, user2.ID)
+	err5 := completeChallenge(challenge2.ID, user3.ID)
+	if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil {
+		t.Errorf("Error completing challenges")
+		return
+	}
+
+	statusCode, body := makeRequestWithToken("GET", "/leaderboard", nil, accessToken.Token)
+	if statusCode != 200 {
+		t.Errorf("Invalid status code: %v", statusCode)
+	}
+
+	var response types.GetLeaderboardResponse
+	decoder := json.NewDecoder(bytes.NewReader([]byte(body)))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&response); err != nil {
+		t.Errorf("Error unmarshalling response: %v", err)
+		return
+	}
+
+	expectedResponse := types.GetLeaderboardResponse{
+		Leaderboard: []types.LeaderboardEntry{
+			{Username: user3.Username, Points: 300},
+			{Username: user1.Username, Points: 100},
+			{Username: user2.Username, Points: 100},
 		},
 	}
 	if !reflect.DeepEqual(response, expectedResponse) {
