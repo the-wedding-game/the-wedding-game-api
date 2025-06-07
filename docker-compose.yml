@@ -3,7 +3,7 @@ services:
     container_name: the-wedding-game-db
     image: postgres:alpine
     ports:
-      - "5432:5432"
+      - "5431:5432"
     environment:
       POSTGRES_USER: the-wedding-game-api
       POSTGRES_PASSWORD: abcd@123
