@@ -323,7 +323,7 @@ func TestGalleryWithInactiveChallenge(t *testing.T) {
 
 	user1, accessToken, err1 := createUserAndGetAccessToken()
 	if err1 != nil {
-		t.Errorf("Error crea`ting users")
+		t.Errorf("Error creating users")
 		return
 	}
 
