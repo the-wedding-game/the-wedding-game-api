@@ -1,4 +1,4 @@
-package integrationtests
+package routes
 
 import (
 	"bytes"
@@ -322,6 +322,10 @@ func TestGalleryWithInactiveChallenge(t *testing.T) {
 	}
 
 	user1, accessToken, err1 := createUserAndGetAccessToken()
+	if err1 != nil {
+		t.Errorf("Error crea`ting users")
+		return
+	}
 
 	_ = createSubmission(challenge1.ID, user1.ID, "https://example.com/image1.jpg")
 	_ = createSubmission(challenge2.ID, user1.ID, "https://example.com/image2.jpg")
