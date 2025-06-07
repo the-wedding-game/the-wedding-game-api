@@ -311,3 +311,43 @@ func TestGalleryInvalidAccessToken(t *testing.T) {
 		t.Errorf("Expected body: %v, got: %v", expectedBody, body)
 	}
 }
+
+func TestGalleryWithInactiveChallenge(t *testing.T) {
+	challenge1, err1 := createChallenge()
+	challenge2, err2 := createInactiveChallengeWithPoints(100)
+	challenge3, err3 := createChallenge()
+	if err1 != nil || err2 != nil || err3 != nil {
+		t.Errorf("Error creating challenges")
+		return
+	}
+
+	user1, accessToken, err1 := createUserAndGetAccessToken()
+
+	_ = createSubmission(challenge1.ID, user1.ID, "https://example.com/image1.jpg")
+	_ = createSubmission(challenge2.ID, user1.ID, "https://example.com/image2.jpg")
+	_ = createSubmission(challenge3.ID, user1.ID, "https://example.com/image3.jpg")
+
+	statusCode, body := makeRequestWithToken("GET", "/gallery", nil, accessToken.Token)
+	if statusCode != 200 {
+		t.Errorf("Invalid status code: %v", statusCode)
+		return
+	}
+
+	var response types.GalleryResponse
+	decoder := json.NewDecoder(bytes.NewReader([]byte(body)))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&response); err != nil {
+		t.Errorf("Error unmarshalling response: %v", err)
+		return
+	}
+
+	expectedResponse := types.GalleryResponse{
+		Images: []types.GalleryItem{
+			{Url: "https://example.com/image3.jpg", SubmittedBy: user1.Username},
+			{Url: "https://example.com/image1.jpg", SubmittedBy: user1.Username},
+		},
+	}
+	if !reflect.DeepEqual(response, expectedResponse) {
+		t.Errorf("Expected response: %v, got: %v", expectedResponse, response)
+	}
+}

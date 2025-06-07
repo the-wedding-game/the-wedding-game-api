@@ -116,9 +116,9 @@ func (p *database) GetGallery() ([]types.GalleryItem, error) {
 		FROM submissions
 		INNER JOIN users ON submissions.user_id = users.id
 		INNER JOIN challenges ON submissions.challenge_id = challenges.id
-		WHERE challenges.type = ?
+		WHERE challenges.type = ? AND challenges.status = ?
 		ORDER BY submissions.created_at DESC
-	`, types.UploadPhotoChallenge).Scan(&gallery)
+	`, types.UploadPhotoChallenge, types.ActiveChallenge).Scan(&gallery)
 
 	if tx.Error != nil {
 		return nil, apperrors.NewDatabaseError(tx.Error.Error())
