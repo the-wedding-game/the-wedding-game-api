@@ -35,7 +35,7 @@ jobs:
             continue-on-error: false
 
           - name: Run tests
-            run: go test -v ./... -cover -coverprofile=coverage.txt
+            run: go test -v ./...
             working-directory: src
 
           - name: Upload coverage reports to Codecov
@@ -43,4 +43,3 @@ jobs:
             with:
               token: ${{ secrets.CODECOV_TOKEN }}
               slug: the-wedding-game/the-wedding-game-api
-            working-directory: src
