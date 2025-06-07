@@ -1,4 +1,4 @@
-package integrationtests
+package routes
 
 import (
 	"fmt"
@@ -12,7 +12,6 @@ import (
 	"os/exec"
 	"testing"
 	"the-wedding-game-api/models"
-	"the-wedding-game-api/routes"
 	"time"
 )
 
@@ -23,11 +22,11 @@ func Setup() {
 }
 
 func TearDown() {
-	dockerComposeDown()
+	//dockerComposeDown()
 }
 
 func dockerComposeUp() {
-	dockerComposeDown()
+	//dockerComposeDown()
 	log.Println("Starting Docker Compose...")
 
 	cmdUp := exec.Command("docker-compose", "-f", "../_tests/docker-compose.yml", "up", "-d")
@@ -123,7 +122,7 @@ var router *gin.Engine
 
 func TestMain(m *testing.M) {
 	Setup()
-	router = routes.GetRouter()
+	router = GetRouter()
 
 	code := m.Run()
 
