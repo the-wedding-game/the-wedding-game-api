@@ -43,3 +43,4 @@ jobs:
             with:
               token: ${{ secrets.CODECOV_TOKEN }}
               slug: the-wedding-game/the-wedding-game-api
+              directory: src
