@@ -40,7 +40,7 @@ jobs:
             continue-on-error: false
 
           - name: Run tests
-            run: go test -v ./... -cover -coverprofile=coverage.yml -coverpkg=./...
+            run: go test -v ./... -cover -coverprofile=coverage.txt -coverpkg=./...
             working-directory: src
 
           - name: Upload coverage reports to Codecov
@@ -48,7 +48,6 @@ jobs:
             with:
               token: ${{ secrets.CODECOV_TOKEN }}
               slug: the-wedding-game/the-wedding-game-api
-              directory: src
 
           - name: SonarQube Scan
             uses: SonarSource/sonarqube-scan-action@v5
