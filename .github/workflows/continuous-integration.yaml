@@ -15,6 +15,8 @@ jobs:
         steps:
           - name: Checkout code
             uses: actions/checkout@v4
+            with:
+              fetch-depth: 0
 
           - name: Setup Go
             uses: actions/setup-go@v2
@@ -38,7 +40,7 @@ jobs:
             continue-on-error: false
 
           - name: Run tests
-            run: go test -v ./... -cover -coverprofile=coverage.txt
+            run: go test -v ./... -cover -coverprofile=coverage.txt -coverpkg=./...
             working-directory: src
 
           - name: Upload coverage reports to Codecov
@@ -46,4 +48,8 @@ jobs:
             with:
               token: ${{ secrets.CODECOV_TOKEN }}
               slug: the-wedding-game/the-wedding-game-api
-              directory: src
+
+          - name: SonarQube Scan
+            uses: SonarSource/sonarqube-scan-action@v5
+            env:
+              SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
