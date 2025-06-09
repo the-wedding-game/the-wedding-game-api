@@ -235,6 +235,42 @@ func (m *MockDB) GetSubmissionsForChallenge(challengeId uint) ([]types.Submissio
 	return submissions, nil
 }
 
+func (m *MockDB) DeleteChallenge(challengeId uint) error {
+	if m.Error != nil {
+		return apperrors.NewDatabaseError(m.Error.Error())
+	}
+
+	if challengeId == 999 {
+		return apperrors.NewRecordNotFoundError("Challenge with ID 999 not found")
+	}
+
+	return nil
+}
+
+func (m *MockDB) DeleteAnswerForChallenge(challengeId uint) error {
+	if m.Error != nil {
+		return apperrors.NewDatabaseError(m.Error.Error())
+	}
+
+	if challengeId == 999 {
+		return apperrors.NewRecordNotFoundError("Answer with Challenge ID 999 not found")
+	}
+
+	return nil
+}
+
+func (m *MockDB) DeleteSubmissionsForChallenge(challengeId uint) error {
+	if m.Error != nil {
+		return apperrors.NewDatabaseError(m.Error.Error())
+	}
+
+	if challengeId == 999 {
+		return apperrors.NewRecordNotFoundError("Submissions for Challenge ID 999 not found")
+	}
+
+	return nil
+}
+
 func (m *MockDB) GetAnswerForChallenge(_ uint) (string, error) {
 	if m.Error != nil {
 		return "", apperrors.NewDatabaseError(m.Error.Error())
