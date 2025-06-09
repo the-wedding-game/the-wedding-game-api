@@ -271,6 +271,49 @@ func (p *database) GetAnswerForChallenge(challengeId uint) (string, error) {
 	return answer, nil
 }
 
+func (p *database) DeleteChallenge(challengeId uint) error {
+	tx := p.db.Exec(`
+		DELETE FROM challenges
+		WHERE id = ?
+	`, challengeId)
+
+	if tx.Error != nil {
+		return apperrors.NewDatabaseError(tx.Error.Error())
+	}
+
+	if tx.RowsAffected == 0 {
+		return apperrors.NewRecordNotFoundError(fmt.Sprintf("Challenge with ID %d not found", challengeId))
+	}
+
+	return nil
+}
+
+func (p *database) DeleteSubmissionsForChallenge(challengeId uint) error {
+	tx := p.db.Exec(`
+		DELETE FROM submissions
+		WHERE challenge_id = ?
+	`, challengeId)
+
+	if tx.Error != nil {
+		return apperrors.NewDatabaseError(tx.Error.Error())
+	}
+
+	return nil
+}
+
+func (p *database) DeleteAnswerForChallenge(challengeId uint) error {
+	tx := p.db.Exec(`
+		DELETE FROM answers
+		WHERE challenge_id = ?
+	`, challengeId)
+
+	if tx.Error != nil {
+		return apperrors.NewDatabaseError(tx.Error.Error())
+	}
+
+	return nil
+}
+
 func (p *database) GetError() error {
 	err := p.db.Error
 	if err == nil {
