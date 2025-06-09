@@ -106,3 +106,7 @@ type GetSubmissionsResponse struct {
 type GetAnswerResponse struct {
 	Answer string `json:"answer"`
 }
+
+type DeleteChallengeResponse struct {
+	Id uint `json:"id"`
+}

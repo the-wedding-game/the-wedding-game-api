@@ -747,3 +747,45 @@ func TestUpdateChallengeUploadToAnswerNoAnswer(t *testing.T) {
 	}
 
 }
+
+func TestDeleteChallenge(t *testing.T) {
+	SetupMockDb()
+
+	challenge := Challenge{ID: 100}
+	err := challenge.Delete()
+	if err != nil {
+		t.Errorf("expected nil but got %s", err.Error())
+		return
+	}
+}
+
+func TestDeleteChallengeDoesNotExist(t *testing.T) {
+	SetupMockDb()
+
+	challenge := Challenge{ID: 999}
+	err := challenge.Delete()
+	if err == nil {
+		t.Errorf("expected error but got nil")
+		return
+	}
+
+	if err.Error() != "error deleting answer for challenge: Answer with Challenge ID 999 not found" {
+		t.Errorf("expected error deleting answer for challenge: Answer with Challenge ID 999 not found. but got %s", err.Error())
+	}
+}
+
+func TestDeleteChallengeError(t *testing.T) {
+	mockDb := SetupMockDb()
+	challenge := Challenge{ID: 100}
+	mockDb.Error = errors.New("test_error")
+
+	err := challenge.Delete()
+	if err == nil {
+		t.Errorf("expected error but got nil")
+		return
+	}
+
+	if err.Error() != "error deleting answer for challenge: test_error" {
+		t.Errorf("error deleting answer for challenge: test_error but got %s", err.Error())
+	}
+}

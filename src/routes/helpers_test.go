@@ -59,15 +59,9 @@ func createAdminAndGetAccessToken() (models.User, models.AccessToken, error) {
 }
 
 func deleteAllChallenges() {
-	dbURI := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s",
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_PORT"),
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_NAME"),
-		os.Getenv("DB_PASS"),
-	)
+	database, err := getDatabaseConnection()
+	defer closeDatabaseConnection(database)
 
-	database, err := gorm.Open(postgres.Open(dbURI))
 	if err != nil {
 		log.Fatalf("Error connecting to database: %v", err)
 	}
@@ -90,15 +84,9 @@ func deleteAllChallenges() {
 }
 
 func dropSubmissionsTable() {
-	dbURI := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s",
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_PORT"),
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_NAME"),
-		os.Getenv("DB_PASS"),
-	)
+	database, err := getDatabaseConnection()
+	defer closeDatabaseConnection(database)
 
-	database, err := gorm.Open(postgres.Open(dbURI))
 	if err != nil {
 		log.Fatalf("Error connecting to database: %v", err)
 	}
@@ -118,15 +106,9 @@ func dropSubmissionsTable() {
 }
 
 func dropAnswersTable() {
-	dbURI := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s",
-		os.Getenv("DB_HOST"),
-		os.Getenv("DB_PORT"),
-		os.Getenv("DB_USER"),
-		os.Getenv("DB_NAME"),
-		os.Getenv("DB_PASS"),
-	)
+	database, err := getDatabaseConnection()
+	defer closeDatabaseConnection(database)
 
-	database, err := gorm.Open(postgres.Open(dbURI))
 	if err != nil {
 		log.Fatalf("Error connecting to database: %v", err)
 	}
@@ -343,7 +325,7 @@ func createSubmission(challengeID uint, userID uint, answer string) error {
 	return nil
 }
 
-func resetDatabase() error {
+func getDatabaseConnection() (db *gorm.DB, err error) {
 	dbURI := fmt.Sprintf("host=%s port=%s user=%s dbname=%s sslmode=disable password=%s",
 		os.Getenv("DB_HOST"),
 		os.Getenv("DB_PORT"),
@@ -352,12 +334,93 @@ func resetDatabase() error {
 		os.Getenv("DB_PASS"),
 	)
 
-	database, err := gorm.Open(postgres.Open(dbURI))
+	return gorm.Open(postgres.Open(dbURI))
+}
+
+func closeDatabaseConnection(db *gorm.DB) {
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Fatalf("Error getting database connection: %v", err)
+	}
+
+	err = sqlDB.Close()
+	if err != nil {
+		log.Fatalf("Error closing database connection: %v", err)
+	}
+}
+
+func resetDatabase() error {
+	database, err := getDatabaseConnection()
 	if err != nil {
 		return err
 	}
+	defer closeDatabaseConnection(database)
 
 	database.Exec("TRUNCATE TABLE users, access_tokens, challenges, submissions RESTART IDENTITY CASCADE")
 
 	return nil
+}
+
+func checkIfAnswerExists(answerId uint) (bool, error) {
+	database, err := getDatabaseConnection()
+	if err != nil {
+		return false, err
+	}
+	defer closeDatabaseConnection(database)
+
+	var count int64
+	err = database.Model(&models.Answer{}).Where("id = ?", answerId).Count(&count).Error
+	if err != nil {
+		log.Fatalf("Error checking if answer exists: %v", err)
+	}
+
+	return count > 0, nil
+}
+
+func checkIfAnswerExistsForChallenge(challengeId uint) (bool, error) {
+	database, err := getDatabaseConnection()
+	if err != nil {
+		return false, err
+	}
+	defer closeDatabaseConnection(database)
+
+	var count int64
+	err = database.Model(&models.Answer{}).Where("challenge_id = ?", challengeId).Count(&count).Error
+	if err != nil {
+		log.Fatalf("Error checking if answer exists for challenge: %v", err)
+	}
+
+	return count > 0, nil
+}
+
+func checkIfSubmissionExists(submissionId uint) (bool, error) {
+	database, err := getDatabaseConnection()
+	if err != nil {
+		return false, err
+	}
+	defer closeDatabaseConnection(database)
+
+	var count int64
+	err = database.Model(&models.Submission{}).Where("id = ?", submissionId).Count(&count).Error
+	if err != nil {
+		log.Fatalf("Error checking if submission exists: %v", err)
+	}
+
+	return count > 0, nil
+}
+
+func checkIfSubmissionExistsForChallenge(challengeId uint) (bool, error) {
+	database, err := getDatabaseConnection()
+	if err != nil {
+		return false, err
+	}
+	defer closeDatabaseConnection(database)
+
+	var count int64
+	err = database.Model(&models.Submission{}).Where("challenge_id = ?", challengeId).Count(&count).Error
+	if err != nil {
+		log.Fatalf("Error checking if submission exists for challenge: %v", err)
+	}
+
+	return count > 0, nil
 }

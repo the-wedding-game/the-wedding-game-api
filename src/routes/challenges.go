@@ -258,3 +258,29 @@ func GetAnswer(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, response)
 	return
 }
+
+func DeleteChallenge(c *gin.Context) {
+	challengeId, err := validators.ValidateDeleteChallengeRequest(c)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	challenge, err := models.GetChallengeByID(challengeId)
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	err = challenge.Delete()
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	response := types.DeleteChallengeResponse{
+		Id: challenge.ID,
+	}
+	c.IndentedJSON(http.StatusOK, response)
+	return
+}
