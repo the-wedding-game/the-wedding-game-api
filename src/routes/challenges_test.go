@@ -3683,7 +3683,7 @@ func TestDeleteChallengeWithSubmissions(t *testing.T) {
 		return
 	}
 
-	submissionExists, err = checkIfAnswerExistsForChallenge(challenge.ID)
+	submissionExists, err = checkIfSubmissionExistsForChallenge(challenge.ID)
 	if err != nil {
 		t.Errorf("Error checking if answer exists for challenge: %v", err)
 		return
