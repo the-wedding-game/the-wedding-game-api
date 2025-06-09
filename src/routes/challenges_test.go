@@ -3483,3 +3483,354 @@ func TestGetAnswerWithDatabaseError(t *testing.T) {
 		return
 	}
 }
+
+func TestDeleteChallenge(t *testing.T) {
+	models.ResetConnection()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err = challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	statusCode, responseBody := makeRequestWithToken("DELETE", "/challenges/"+strconv.Itoa(int(challenge.ID)), nil, accessToken.Token)
+	if statusCode != http.StatusOK {
+		t.Errorf("Expected status code 200, got %v", statusCode)
+		return
+	}
+
+	var response types.DeleteChallengeResponse
+	err = json.Unmarshal([]byte(responseBody), &response)
+	decoder := json.NewDecoder(bytes.NewReader([]byte(responseBody)))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&response); err != nil {
+		t.Errorf("Error unmarshalling response: %v", err)
+		return
+	}
+
+	expectedResponse := types.DeleteChallengeResponse{
+		Id: challenge.ID,
+	}
+
+	if !reflect.DeepEqual(response, expectedResponse) {
+		t.Errorf("Expected response: %v, got: %v", expectedResponse, response)
+	}
+
+	_, err = models.GetChallengeByID(challenge.ID)
+	if err == nil {
+		t.Errorf("Expected challenge to be deleted, but it still exists")
+		return
+	}
+
+	if err.Error() != "Challenge with key 1 not found." {
+		t.Errorf("Expected Challenge with key 1 not found., got %v", err)
+		return
+	}
+}
+
+func TestDeleteChallengeWithAnswer(t *testing.T) {
+	models.ResetConnection()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.AnswerQuestionChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err = challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	answer := models.Answer{
+		ChallengeID: challenge.ID,
+		Value:       "test_answer",
+	}
+	answer, err = answer.Save()
+	if err != nil {
+		t.Errorf("Error saving answer: %v", err)
+		return
+	}
+
+	statusCode, responseBody := makeRequestWithToken("DELETE", "/challenges/"+strconv.Itoa(int(challenge.ID)), nil, accessToken.Token)
+	if statusCode != http.StatusOK {
+		t.Errorf("Expected status code 200, got %v", statusCode)
+		return
+	}
+
+	var response types.DeleteChallengeResponse
+	err = json.Unmarshal([]byte(responseBody), &response)
+	if err != nil {
+		t.Errorf("Error unmarshalling response: %v", err)
+		return
+	}
+
+	expectedResponse := types.DeleteChallengeResponse{
+		Id: challenge.ID,
+	}
+
+	if !reflect.DeepEqual(response, expectedResponse) {
+		t.Errorf("Expected response: %v, got: %v", expectedResponse, response)
+		return
+	}
+
+	answerExists, err := checkIfAnswerExists(answer.ID)
+	if err != nil {
+		t.Errorf("Error checking if answer exists: %v", err)
+		return
+	}
+
+	if answerExists {
+		t.Errorf("Expected answer to be deleted, but it still exists")
+		return
+	}
+
+	answerExists, err = checkIfAnswerExistsForChallenge(challenge.ID)
+	if err != nil {
+		t.Errorf("Error checking if answer exists for challenge: %v", err)
+		return
+	}
+
+	if answerExists {
+		t.Errorf("Expected answer to be deleted for challenge, but it still exists")
+		return
+	}
+}
+
+func TestDeleteChallengeWithSubmissions(t *testing.T) {
+	models.ResetConnection()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err = challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	submission := models.NewSubmission(accessToken.UserID, challenge.ID, "test_answer")
+	_, err = submission.Save()
+	if err != nil {
+		t.Errorf("Error saving submission: %v", err)
+		return
+	}
+
+	statusCode, responseBody := makeRequestWithToken("DELETE", "/challenges/"+strconv.Itoa(int(challenge.ID)), nil, accessToken.Token)
+	if statusCode != http.StatusOK {
+		t.Errorf("Expected status code 200, got %v", statusCode)
+		return
+	}
+
+	var response types.DeleteChallengeResponse
+	err = json.Unmarshal([]byte(responseBody), &response)
+	if err != nil {
+		t.Errorf("Error unmarshalling response: %v", err)
+		return
+	}
+
+	expectedResponse := types.DeleteChallengeResponse{
+		Id: challenge.ID,
+	}
+
+	if !reflect.DeepEqual(response, expectedResponse) {
+		t.Errorf("Expected response: %v, got: %v", expectedResponse, response)
+		return
+	}
+
+	submissionExists, err := checkIfSubmissionExists(submission.ID)
+	if err != nil {
+		t.Errorf("Error checking if submission exists: %v", err)
+		return
+	}
+
+	if submissionExists {
+		t.Errorf("Expected submission to be deleted, but it still exists")
+		return
+	}
+
+	submissionExists, err = checkIfAnswerExistsForChallenge(challenge.ID)
+	if err != nil {
+		t.Errorf("Error checking if answer exists for challenge: %v", err)
+		return
+	}
+
+	if submissionExists {
+		t.Errorf("Expected answer to be deleted for challenge, but it still exists")
+		return
+	}
+}
+
+func TestDeleteChallengeDoesNotExist(t *testing.T) {
+	models.ResetConnection()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	statusCode, responseBody := makeRequestWithToken("DELETE", "/challenges/999999", nil, accessToken.Token)
+	if statusCode != http.StatusNotFound {
+		t.Errorf("Expected status code 404, got %v", statusCode)
+		return
+	}
+
+	expectedResponse := "{\"message\":\"Challenge with key 999999 not found.\",\"status\":\"error\"}"
+	if responseBody != expectedResponse {
+		t.Errorf("Expected response %v, got %v", expectedResponse, responseBody)
+		return
+	}
+}
+
+func TestDeleteChallengeInvalidId(t *testing.T) {
+	models.ResetConnection()
+
+	_, accessToken, err := createAdminAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	statusCode, responseBody := makeRequestWithToken("DELETE", "/challenges/invalid", nil, accessToken.Token)
+	if statusCode != http.StatusBadRequest {
+		t.Errorf("Expected status code 400, got %v", statusCode)
+		return
+	}
+
+	expectedResponse := "{\"message\":\"invalid challenge id\",\"status\":\"error\"}"
+	if responseBody != expectedResponse {
+		t.Errorf("Expected response %v, got %v", expectedResponse, responseBody)
+		return
+	}
+}
+
+func TestDeleteChallengeWithEmptyToken(t *testing.T) {
+	models.ResetConnection()
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err := challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	statusCode, responseBody := makeRequest("DELETE", "/challenges/"+strconv.Itoa(int(challenge.ID)), nil)
+	if statusCode != http.StatusUnauthorized {
+		t.Errorf("Expected status code 401, got %v", statusCode)
+		return
+	}
+
+	expectedResponse := "{\"message\":\"access token is not provided\",\"status\":\"error\"}"
+	if responseBody != expectedResponse {
+		t.Errorf("Expected response %v, got %v", expectedResponse, responseBody)
+		return
+	}
+}
+
+func TestDeleteChallengeInvalidToken(t *testing.T) {
+	models.ResetConnection()
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err := challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	statusCode, responseBody := makeRequestWithToken("DELETE", "/challenges/"+strconv.Itoa(int(challenge.ID)), nil, "invalid_token")
+	if statusCode != http.StatusForbidden {
+		t.Errorf("Expected status code 403, got %v", statusCode)
+		return
+	}
+
+	expectedResponse := "{\"message\":\"access denied\",\"status\":\"error\"}"
+	if responseBody != expectedResponse {
+		t.Errorf("Expected response %v, got %v", expectedResponse, responseBody)
+		return
+	}
+}
+
+func TestDeleteChallengeNotAdmin(t *testing.T) {
+	models.ResetConnection()
+
+	_, accessToken, err := createUserAndGetAccessToken()
+	if err != nil {
+		t.Errorf("Error creating user and getting access token")
+		return
+	}
+
+	challenge := models.Challenge{
+		Name:        "test_challenge",
+		Description: "test_description",
+		Points:      10,
+		Image:       "test_image",
+		Type:        types.UploadPhotoChallenge,
+		Status:      types.ActiveChallenge,
+	}
+	challenge, err = challenge.Save()
+	if err != nil {
+		t.Errorf("Error saving challenge: %v", err)
+		return
+	}
+
+	statusCode, responseBody := makeRequestWithToken("DELETE", "/challenges/"+strconv.Itoa(int(challenge.ID)), nil, accessToken.Token)
+	if statusCode != http.StatusForbidden {
+		t.Errorf("Expected status code 403, got %v", statusCode)
+		return
+	}
+
+	expectedResponse := "{\"message\":\"access denied\",\"status\":\"error\"}"
+	if responseBody != expectedResponse {
+		t.Errorf("Expected response %v, got %v", expectedResponse, responseBody)
+		return
+	}
+}
