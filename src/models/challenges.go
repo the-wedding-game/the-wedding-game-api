@@ -178,3 +178,21 @@ func (challenge Challenge) createOrUpdateAnswer(oldType types.ChallengeType, ans
 
 	return nil
 }
+
+func (challenge Challenge) Delete() error {
+	conn := GetConnection()
+
+	if err := conn.DeleteAnswerForChallenge(challenge.ID); err != nil {
+		return fmt.Errorf("error deleting answer for challenge: %w", err)
+	}
+
+	if err := conn.DeleteSubmissionsForChallenge(challenge.ID); err != nil {
+		return fmt.Errorf("error deleting submissions for challenge: %w", err)
+	}
+
+	if err := conn.DeleteChallenge(challenge.ID); err != nil {
+		return fmt.Errorf("error deleting challenge: %w", err)
+	}
+
+	return nil
+}
