@@ -22,7 +22,7 @@ func TestCORSMiddleware(t *testing.T) {
 		t.Errorf("expected Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With but got %s", request.Writer.Header().Get("Access-Control-Allow-Headers"))
 	}
 
-	if request.Writer.Header().Get("Access-Control-Allow-Methods") != "POST, OPTIONS, GET, PUT" {
+	if request.Writer.Header().Get("Access-Control-Allow-Methods") != "POST, OPTIONS, GET, PUT, DELETE" {
 		t.Errorf("expected POST, OPTIONS, GET, PUT but got %s", request.Writer.Header().Get("Access-Control-Allow-Methods"))
 	}
 }
