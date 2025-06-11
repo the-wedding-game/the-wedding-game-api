@@ -62,6 +62,6 @@ jobs:
             uses: aws-actions/amazon-ecs-deploy-task-definition@v2
             with:
               task-definition: ${{ steps.task-def.outputs.task-definition }}
-              service: the-wedding-game-api-service-3
+              service: the-wedding-game-api-service-4
               cluster: the-wedding-game-api
               wait-for-service-stability: true
