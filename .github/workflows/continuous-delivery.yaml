@@ -24,7 +24,7 @@ jobs:
           - name: Set up Docker Buildx
             uses: docker/setup-buildx-action@v3
 
-          - name: Build and push Docker image
+          - name: Build and push Docker image with hash
             id: push
             uses: docker/build-push-action@v6
             with:
@@ -33,35 +33,12 @@ jobs:
               push: true
               tags: kaneeldias/the-wedding-game-api:${{ github.sha }}
 
-#    deploy-to-ecs:
-#        name: Push Docker image to AWS ECS
-#        runs-on: ubuntu-latest
-#        needs: push-to-docker-hub-registry
-#
-#        steps:
-#          - name: Configure AWS Credentials
-#            uses: aws-actions/configure-aws-credentials@v4
-#            with:
-#                aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#                aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#                aws-region: eu-west-1
-#
-#          - name: Download task definition
-#            run: |
-#              aws ecs describe-task-definition --task-definition the-wedding-game-api --query taskDefinition > task-definition.json
-#
-#          - name: Fill in the new image ID in the AWS ECS task definition
-#            id: task-def
-#            uses: aws-actions/amazon-ecs-render-task-definition@v1
-#            with:
-#              task-definition: task-definition.json
-#              container-name: the-wedding-game-api
-#              image: registry.hub.docker.com/kaneeldias/the-wedding-game-api:${{ github.sha }}
-#
-#          - name: Deploy AWS ECS task definition
-#            uses: aws-actions/amazon-ecs-deploy-task-definition@v2
-#            with:
-#              task-definition: ${{ steps.task-def.outputs.task-definition }}
-#              service: the-wedding-game-api-service-4
-#              cluster: the-wedding-game-api
-#              wait-for-service-stability: true
+          - name: Build and push Docker image with latest
+            id: push
+            uses: docker/build-push-action@v6
+            with:
+              context: .
+              file: ./Dockerfile
+              push: true
+              tags: kaneeldias/the-wedding-game-api:latest
+
